@@ -1,0 +1,205 @@
+/* FORM STYLING */
+
+/* Homepage advance search form */
+.gform_wrapper.gravity-theme.advance__search_wrapper,
+.gform_wrapper.gravity-theme.book__now-form_wrapper {
+
+    --form-button__padding: 1rem 1.5rem;
+    --__advance-search--spacing-1: 1rem; 
+    --__advance-search--spacing-2: .75rem;
+    --__advance-search--spacing-3: 1.5rem;
+    --__advance-search--spacing-4: .5rem;
+    --__advance-search--input-width: 200px;
+
+    --__advance-search--form-wrapper: var(--__advance-search--spacing-1);
+    --__advance-search--form-wrapper-radius: 4rem;
+    --__advance-search--form-wrapper-fields-radius: var(--__advance-search--spacing-3);
+
+    margin-top: 0;
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .advance__search {
+    display: flex;
+    padding: var(--__advance-search--form-wrapper);
+    gap: var(--__advance-search--form-wrapper);
+
+    border-radius: var(--__advance-search--form-wrapper-radius);
+    background: rgba(255, 255, 255, 0.40);
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .advance__search .gform_body {
+    width: 100%;
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gform_fields {
+    grid-template-columns: 1fr repeat(3, var(--__advance-search--input-width));
+    grid-template-rows: 1fr;
+    gap: var(--__advance-search--form-wrapper);
+}
+
+/* Advance Search */
+.gform_wrapper.gravity-theme.advance__search_wrapper input[type=number],
+.gform_wrapper.gravity-theme.advance__search_wrapper input[type=text],
+.gform_wrapper.gravity-theme.advance__search_wrapper .gform_footer input[type=submit],
+/* Book Now */
+.gform_wrapper.gravity-theme.book__now-form_wrapper input[type=number],
+.gform_wrapper.gravity-theme.book__now-form_wrapper input[type=text],
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gform_footer input[type=submit],
+/* Global */
+.gform_wrapper.gravity-theme .gfield_radio label {
+    font-size: var(--wp--preset--font-size--text-md);
+    font-family: var(--wp--preset--font-family--urbanist);
+    padding: 0;
+    border: unset;
+    width: 100%;
+    margin: 0;
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper input:focus,
+.gform_wrapper.gravity-theme.book__now-form_wrapper input:focus {
+    outline: none;
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gfield {
+    grid-column: unset !important;
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gfield .ginput_container,
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio),
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container.ginput_container_radio .gchoice {
+    display: flex;
+    gap: var(--__advance-search--spacing-2);
+    align-items: center;
+    background: var(--wp--preset--color--base-2);
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gfield .ginput_container,
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio) {
+    padding: var(--__advance-search--spacing-2) var(--__advance-search--spacing-1);
+    border-radius: var(--__advance-search--form-wrapper-fields-radius);
+}
+
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio),
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container.ginput_container_radio .gchoice {
+    padding: 1rem;
+    border-radius: .5rem;
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gfield .ginput_container::before,
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio)::before {
+    font-family: var(--wp--preset--font-family--ayala);
+    content: '\e90b';
+    font-size: 20px;
+    line-height: 20px;
+    color: var(--wp--preset--color--contrast);
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gform_footer input[type=submit] {
+    padding: var(--__advance-search--spacing-2) var(--__advance-search--spacing-1);
+    border-radius: var(--__advance-search--form-wrapper-fields-radius);
+    display: flex;
+    /* padding: var(--__advance-search--spacing-2) var(--__advance-search--spacing-3); */
+    justify-content: center;
+    align-items: center;
+    gap: var(--__advance-search--spacing-4);
+    margin-bottom: 0;
+
+    background: var(--wp--preset--color--accent);
+    color: var(--wp--preset--color--base-2);
+}
+
+.gform_wrapper.gravity-theme.advance__search_wrapper .gform_footer,
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gform_footer {
+    margin: 0;
+    padding: 0;
+}
+
+.advance__search .gform_footer input[type="submit"] {
+    border: unset;
+}
+
+
+/* SEARCH RESULT CATALOG */
+.search__rooms-catalog .gform_wrapper.gravity-theme.advance__search_wrapper .advance__search {
+    background: var(--wp--preset--color--base-2);
+    box-shadow: 0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+}
+
+.search__rooms-catalog .gform_wrapper.gravity-theme.advance__search_wrapper .gfield .ginput_container,
+.search__rooms-catalog .gform_wrapper.gravity-theme.advance__search_wrapper input {
+    background: #F9FAFB;
+}
+
+
+
+.search__rooms-catalog .gform_wrapper.gravity-theme.advance__search_wrapper p {
+    display: none;
+}
+
+/* Responsive */
+@media screen and (max-width: 64rem) {
+    .gform_wrapper.gravity-theme.advance__search_wrapper {
+        --__advance-search--input-width: 9.375rem;
+        --__advance-search--form-wrapper: var(--__advance-search--spacing-2);
+    }
+}
+
+@media screen and (max-width: 52.5rem) {
+    .gform_wrapper.gravity-theme.advance__search_wrapper {
+        --__advance-search--form-wrapper: var(--__advance-search--spacing-1);
+        --__advance-search--form-wrapper-radius: 2rem;
+    }
+
+    .gform_wrapper.gravity-theme.advance__search_wrapper .advance__search {
+        flex-direction: column;
+    }
+
+    .gform_wrapper.gravity-theme.advance__search_wrapper .gform_fields {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: 2fr;
+    }
+}
+
+@media screen and (max-width: 31.25rem) {
+    .gform_wrapper.gravity-theme.advance__search_wrapper {
+        --__advance-search--form-wrapper: var(--__advance-search--spacing-4);
+    }
+
+    .gform_wrapper.gravity-theme.advance__search_wrapper .gform_fields {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* BOOK NOW - Product Single Page */
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gform_footer input[type=submit] {
+    padding: var(--form-button__padding);
+    border-radius: .5rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--__advance-search--spacing-4);
+    margin-bottom: 0;
+
+    background: var(--wp--preset--color--accent);
+    color: var(--wp--preset--color--base-2);
+}
+
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield.gfield--type-radio .gfield_label{
+    font-size: var(--wp--preset--font-size--text-md);
+    font-weight: 400;
+    color: var(--wp--preset--color--contrast-3);
+}
+
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio),
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container.ginput_container_radio .gchoice {
+    border: 1px solid #F2F4F7;
+}
+
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container.ginput_container_radio .gchoice:not(:last-child) {
+    margin-bottom: .5rem;
+}
+
+.gform_wrapper.gravity-theme.book__now-form_wrapper .gform-body {
+    margin-bottom: 1rem;
+}

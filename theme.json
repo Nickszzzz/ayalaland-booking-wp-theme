@@ -1,0 +1,204 @@
+{
+	"version": 2,
+	"$schema": "https://schemas.wp.org/wp/6.4/theme.json",
+	"settings": {
+		"typography": {
+			"fontFamilies": [
+				{
+					"fontFamily": "Urbanist",
+					"slug": "urbanist",
+					"fontFace": [
+						{
+							"fontFamily": "Urbanist",
+							"fontStyle": "normal",
+							"fontWeight": "700",
+							"src": [
+								"file:./assets/fonts/urbanist_normal_700.ttf"
+							]
+						},
+						{
+							"fontFamily": "Urbanist",
+							"fontStyle": "normal",
+							"fontWeight": "600",
+							"src": [
+								"file:./assets/fonts/urbanist_normal_600.ttf"
+							]
+						},
+						{
+							"fontFamily": "Urbanist",
+							"fontStyle": "normal",
+							"fontWeight": "500",
+							"src": [
+								"file:./assets/fonts/urbanist_normal_500.ttf"
+							]
+						},
+						{
+							"fontFamily": "Urbanist",
+							"fontStyle": "normal",
+							"fontWeight": "400",
+							"src": [
+								"file:./assets/fonts/urbanist_normal_400.ttf"
+							]
+						},
+						{
+							"fontFamily": "Urbanist",
+							"fontStyle": "normal",
+							"fontWeight": "300",
+							"src": [
+								"file:./assets/fonts/urbanist_normal_300.ttf"
+							]
+						}
+					]
+				},
+				{
+					"fontFamily": "ayala",
+					"slug": "ayala",
+					"fontFace": [
+						{
+							"fontFamily": "ayala",
+							"fontWeight": "400",
+							"fontStyle": "normal",
+							"src": [
+								"file:./assets/fonts/ayala_normal_400.woff"
+							]
+						}
+					]
+				}
+			],
+			"fluid": true,
+			"fontSizes": [
+				{
+					"fluid": false,
+					"name": "Small",
+					"size": "0.9rem",
+					"slug": "small"
+				},
+				{
+					"fluid": false,
+					"name": "Medium",
+					"size": "1.05rem",
+					"slug": "medium"
+				},
+				{
+					"fluid": {
+						"max": "1.85rem",
+						"min": "1.39rem"
+					},
+					"name": "Large",
+					"size": "1.85rem",
+					"slug": "large"
+				},
+				{
+					"fluid": {
+						"max": "2.5rem",
+						"min": "1.85rem"
+					},
+					"name": "Extra Large",
+					"size": "2.5rem",
+					"slug": "x-large"
+				},
+				{
+					"fluid": {
+						"max": "3.27rem",
+						"min": "2.5rem"
+					},
+					"name": "Extra Extra Large",
+					"size": "3.27rem",
+					"slug": "xx-large"
+				},
+				{
+					"fluid": true,
+					"name": "Text xs",
+					"size": ".75rem",
+					"slug": "text-xs"
+				},
+				{
+					"fluid": true,
+					"name": "Text sm",
+					"size": ".875rem",
+					"slug": "text-sm"
+				},
+				{
+					"fluid": true,
+					"name": "Text md",
+					"size": "1rem",
+					"slug": "text-md"
+				},
+				{
+					"fluid": true,
+					"name": "Text lg",
+					"size": "1.125rem",
+					"slug": "text-lg"
+				},
+				{
+					"fluid": true,
+					"name": "Text xl",
+					"size": "1.25rem",
+					"slug": "text-xl"
+				},
+				{
+					"fluid": true,
+					"name": "Display xs",
+					"size": "1.5rem",
+					"slug": "display-xs"
+				},
+				{
+					"fluid": true,
+					"name": "Display sm",
+					"size": "1.875rem",
+					"slug": "display-sm"
+				},
+				{
+					"fluid": true,
+					"name": "Display md",
+					"size": "2.25rem",
+					"slug": "display-md"
+				},
+				{
+					"fluid": true,
+					"name": "Display lg",
+					"size": "3rem",
+					"slug": "display-lg"
+				},
+				{
+					"fluid": true,
+					"name": "Display xl",
+					"size": "3.75rem",
+					"slug": "display-xl"
+				},
+				{
+					"fluid": true,
+					"name": "Display 2xl",
+					"size": "4.5rem",
+					"slug": "display-2xl"
+				}
+			],
+			"writingMode": true,
+			"customFontSize": true,
+			"dropCap": false,
+			"fontStyle": true,
+			"fontWeight": true,
+			"letterSpacing": true,
+			"textDecoration": true,
+			"textTransform": true
+		},
+		"useRootPaddingAwareAlignments": true,
+		"spacing": {
+			"customSpacingSize": true,
+			"units": [
+				"px",
+				"em",
+				"rem",
+				"vh",
+				"vw",
+				"%"
+			]
+		},
+		"custom": {
+			"global": {
+				"padding-left": "clamp(1rem, 0.5829rem + 1.5702vw, 2rem);",
+				"padding-right": "clamp(1rem, 0.5829rem + 1.5702vw, 2rem);"
+			}
+		}
+	}
+}

@@ -1,0 +1,12 @@
+/* SORTING STYLE */
+.wc-block-catalog-sorting {
+    font-weight: 600;
+}
+
+.wc-block-catalog-sorting .woocommerce-ordering select{
+    font-family: inherit;
+    border: none;
+    padding: 14px 12px;
+    background: #F9FAFB;
+    border-radius: 8px;
+}

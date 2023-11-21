@@ -1,0 +1,559 @@
+/*
+Theme Name: AyalaLand Booking
+Theme URI: 
+Author: 
+Author URI: 
+Description: 
+Requires at least: 6.0
+Tested up to: 6.4.1
+Requires PHP: 5.7
+Version: 1.0.0
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Template: twentytwentyfour
+Text Domain: ayalalandbooking
+Tags: blog, news, portfolio, one-column, wide-blocks, accessibility-ready, block-patterns, block-styles, custom-colors, custom-logo, custom-menu, editor-style, featured-images, full-site-editing, rtl-language-support, sticky-post, style-variations, threaded-comments, translation-ready, 
+*/
+
+
+/* FOOTER */
+footer {
+    margin-block-start: 0;
+}
+.footer__main-menu {
+    display: grid !important;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 40px;
+}
+
+.footer__address-container {
+    padding-right: 0px !important;
+    padding-left: 0px !important;
+}
+
+@media screen and (max-width: 768px) {
+    .footer__main-menu {
+        gap: 2em !important;
+    }
+
+    .footer__copyright-section > .wp-block-group{
+        flex-direction: column;
+    }
+
+    .footer__copyright-section > .wp-block-group p{
+        order: 2;
+    }
+
+    .footer__copyright-menu {
+        gap: 10px;
+        justify-content: center;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .footer__logo-social-links {
+        flex-direction: column;
+        align-items: start !important;
+    }
+
+    .footer__logo-social-links figure img {
+        height: 60px !important;
+    }
+}
+
+@media screen and (max-width: 425px) {
+    .footer__main-menu {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+
+/* HOMEPAGE */
+.featured__locations {
+    --__featured-location-img-height: 9.375rem;
+    --__featured-location-figcaption-height: 100%;
+    --__number-of-columns: 7; /* Default number of columns */
+    --__featured-location-grid-gap: .5rem;
+
+    gap: var(--__featured-location-grid-gap);
+}
+
+.featured__locations > .wp-block-image {
+
+    --__featured-location-column: calc(100% / var(--__number-of-columns)); 
+
+    border-radius: .5rem;
+    overflow: hidden;
+    min-height: var(--__featured-location-img-height);
+    height: var(--__featured-location-img-height);
+
+    width: calc(var(--__featured-location-column) - var(--__featured-location-grid-gap, 16px)*.85714) !important;
+}
+
+
+.featured__locations .wp-block-image .wp-element-caption {
+    height: var(--__featured-location-figcaption-height);
+    max-height: var(--__featured-location-figcaption-height) !important;
+    background: unset !important;
+    padding: 1.5rem !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .3s ease-in-out;
+
+    font-size: var(--wp--preset--font-size--text-lg) !important;
+    font-weight: 600;
+}
+
+.featured__locations .wp-block-image:hover .wp-element-caption {
+    cursor: pointer;
+    background: hsla(153, 73%, 35%, 0.6) !important;
+}
+
+
+.featured__meeting-rooms {
+    --figcaption-height: 100%;
+    --figcaption-spacing: 1.5rem;
+}
+
+.swiper.featured__meeting-rooms-slider .wp-block-image:hover {
+    cursor: pointer;
+}
+
+.swiper.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide .wp-element-caption{
+    height: var(--figcaption-height);
+    padding: var(--figcaption-spacing);
+    max-height: unset;
+    position: absolute;
+    font-size: var(--wp--preset--font-size--display-xs) !important;
+    font-weight: 500;
+    color: var(--wp--preset--color--base-2);
+    align-items: center;
+    justify-content: center;
+    gap: .25rem;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.swiper.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide .wp-element-caption span {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: var(--wp--preset--font-size--text-md) !important;
+    font-weight: 600;
+    color: var(--wp--preset--color--base-2);
+}
+
+.swiper.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide .wp-element-caption span::before {
+    font-family: var(--wp--preset--font-family--ayala);
+    content: '\e90b';
+    font-size: 1rem;
+    line-height: 1rem;
+}
+
+.swiper.featured__meeting-rooms-slider .wp-block-gallery {
+    height: 31.5rem;
+}
+
+.swiper.featured__meeting-rooms-slider .swiper-pagination {
+    position: relative;
+    margin-top: 1.5rem;
+}
+
+.swiper.featured__meeting-rooms-slider .swiper-pagination .swiper-pagination-bullet {
+    width: 2.5rem;
+    height: .125rem;
+    background: #D0D5DD;
+    border-radius: unset;
+}
+
+.swiper.featured__meeting-rooms-slider .swiper-pagination .swiper-pagination-bullet.swiper-pagination-bullet-active {
+    width: 2.5rem;
+    height: .25rem;
+    background: var(--wp--preset--color--accent);
+}
+
+.featured__meeting-rooms-slider .wp-block-gallery {
+    height: 100%;
+    gap: unset;
+    flex-direction: column;
+}
+
+.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide{
+    flex-grow: unset !important;
+}
+
+
+@media screen and (max-width: 64rem) {
+    .featured__locations {
+        --__number-of-columns: 4;
+    }
+
+    .featured__meeting-rooms {
+        gap: 2em 1.5rem !important;
+    }
+}
+
+@media screen and (max-width: 48rem) {
+    .featured__locations {
+        --__number-of-columns: 3;
+    }
+}
+
+@media screen and (max-width: 37.5rem) {
+    .featured__locations {
+        --__number-of-columns: 2;
+    }
+
+    .swiper.featured__meeting-rooms-slider .wp-block-gallery {
+        height: 21.875rem;
+    }
+}
+
+
+
+/* MEETING ROOMS */
+.products-block-post-template {
+    --__offices-grid-gap: 2rem;
+    --__office-image-height: 15.625rem;
+    --__office-card-spacing: 1rem;
+
+    gap: var(--__offices-grid-gap);
+}
+
+.products-block-post-template .wp-block-post {
+    background: var(--wp--preset--color--base-2);
+    border-radius: var(--__office-card-spacing);
+}
+
+.products-block-post-template .wp-block-post .office-card__details{
+    padding: var(--__office-card-spacing);
+}
+
+.products-block-post-template .wp-block-post .office-card__details .wp-block-post-title {
+    margin-bottom: .75rem;
+}
+
+.products-block-post-template .wp-block-post .office-card__details .is-style-hourly-rate,
+.products-block-post-template .wp-block-post .office-card__details p {
+    margin-bottom: 1.25rem;
+}
+
+.products-block-post-template .wp-block-post .wc-block-components-product-image {
+    margin-bottom: 0;
+}
+
+.products-block-post-template .wp-block-post .wc-block-components-product-image a img {
+    min-height: var(--__office-image-height);
+    height: var(--__office-image-height);
+    border-radius: var(--__office-card-spacing);
+}
+
+@media screen and (max-width: 64rem) {
+    .products-block-post-template {
+        --__offices-grid-gap: 1.5rem;
+        --__office-image-height: 12.5rem;
+    }
+}
+
+@media screen and (max-width: 48rem) {
+    .products-block-post-template {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}
+
+@media screen and (max-width: 37.5rem) {
+    .products-block-post-template {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+
+
+
+
+/* LOCATIONS PAGE */
+.locations__grid {
+    --__location-img-height: 300px;
+    --__location-figcaption-height: 100%;
+    --__location-column: 33.33%; 
+    --__location-grid-gap: 2rem;
+
+    gap: var(--__location-grid-gap) !important;
+}
+.locations__grid > .wp-block-image {
+    border-radius: 8px;
+    overflow: hidden;
+    height: var(--__location-img-height);
+    min-height: var(--__location-img-height);
+
+    width: calc(var(--__location-column) - var(--__location-grid-gap, 16px)*.66667) !important;
+}
+
+.locations__grid .wp-block-image .wp-element-caption {
+    height: var(--__location-figcaption-height);
+    max-height: var(--__location-figcaption-height) !important;
+    background: unset !important;
+    padding: 1.5rem !important;
+    margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .3s ease-in-out;
+
+    font-size: var(--wp--preset--font-size--display-xs) !important;
+    font-weight: 600;
+}
+
+.locations__grid .wp-block-image:hover .wp-element-caption {
+    cursor: pointer;
+    background: hsla(153, 73%, 35%, 0.6) !important;
+}
+
+@media screen and (max-width: 64rem) {
+    .locations__grid {
+        --__location-column: 50%;
+        --__location-grid-gap: 1.5rem;
+    }
+}
+
+@media screen and (max-width: 37.5rem) {
+    .locations__grid {
+        --__location-img-height: 200px;
+        --__location-column: 100%;
+        --__location-grid-gap: 1rem;
+    }
+}
+
+
+/* LOCATIONS SINGLE PAGE */
+.offices {
+    --__media-img-width: clamp(31.25rem, 0.6712rem + 47.7327vw, 43.75rem);
+    --__media-img-height: 25rem;
+    --__media-text-gap: 6rem;
+}
+
+.offices > .wp-block-media-text {
+    gap: var(--__media-text-gap);
+}
+.offices > .wp-block-media-text .wp-block-media-text__content{
+    padding: 0;
+}
+
+.offices > .wp-block-media-text .wp-block-media-text__content .wp-block-heading,
+.offices > .wp-block-media-text .wp-block-media-text__content ul{
+    margin: 0;
+}
+
+.offices > .wp-block-media-text .wp-block-media-text__content .wp-block-heading {
+    margin-bottom: .75rem;
+}
+
+.offices > .wp-block-media-text .wp-block-media-text__content ul{
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.offices > .wp-block-media-text .wp-block-media-text__content p {
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.offices > .wp-block-media-text .wp-block-media-text__media img{
+    border-radius: 2rem;
+    overflow: hidden;
+    height: 100%;
+    min-height: var(--__media-img-height);
+    object-fit: cover;
+}
+
+
+.offices > .wp-block-media-text {
+    grid-template-columns: var(--__media-img-width) 1fr;
+}
+
+.offices > .wp-block-media-text.has-media-on-the-right{
+    grid-template-columns: 1fr var(--__media-img-width);
+}
+
+@media screen and (max-width: 64rem) {
+    .offices {
+        --__media-img-width: clamp(21.875rem, -6.3971rem + 58.8235vw, 31.25rem);
+        --__media-text-gap: 5rem;
+    }
+}
+
+@media screen and (max-width: 48rem) {
+    .offices {
+        --__media-img-width: 1fr;
+        --__media-text-gap: 2rem;
+    }
+}
+
+@media screen and (max-width: 48rem) {
+    .offices {
+        --__media-text-gap: 1rem;
+        --__media-img-height: 18.75rem;
+    }
+}
+
+@media screen and (max-width: 26.5625rem) {
+    .offices {
+        --__media-img-height: 15.625rem;
+    }
+}
+
+
+/* PRODUCTS SINGLE PAGE */
+.product-single-page__availability,
+.product-single-page__book-form,
+.product-single-page__map {
+    box-shadow: 0px 4px 6px -2px rgba(16, 24, 40, 0.03), 0px 12px 16px -4px rgba(16, 24, 40, 0.08);
+}
+
+.product-single-page__property-details table tbody tr td {
+    border: 1px solid #ddd;
+    padding: .75rem 1rem;
+}
+
+.product-single-page__property-details table tbody tr td:first-child,
+.product-single-page__property-details table tbody tr td:last-child,
+.product-single-page__property-details table tbody tr:last-child td:first-child {
+    border-top: none;
+    border-left: none;
+}
+
+.product-single-page__property-details table tbody tr td:first-child {
+    border-right: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    font-weight: 600;
+}
+
+.product-single-page__property-details table tbody tr td:last-child {
+    border-right: none;
+    border-bottom: 1px solid #ddd;
+}
+
+.product-single-page__property-details table tbody tr:last-child td:first-child {
+    border-right: 1px solid #ddd;
+    border-bottom: none;
+}
+
+.product-single-page__property-details table tbody tr:last-child td:last-child {
+    border: none;
+}
+
+/* Book Now */
+.product-single-page__cover .wp-block-cover__inner-container {
+    padding: 0 clamp(4rem, -41rem + 50vw, 19rem);
+}
+
+.product-single-page__banner .wp-block-column:last-child {
+    padding: 0 5rem;
+}
+
+.product-single-page__book-form p {
+    display: none;
+}
+
+.product-single-page__map {
+    overflow: hidden;
+}
+
+.product-single-page__map iframe {
+    width: 100%;
+    height: 100%;
+    min-height: 25rem;
+}
+
+.product-single-page__video img{
+    border-radius: 1rem;
+    height: 26.875rem;
+    object-fit: cover;
+}
+
+.wp-block-gallery.product-single-page__gallery {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+.wp-block-gallery.product-single-page__gallery figure {
+    width: 100% !important;
+}
+
+.wp-block-gallery.product-single-page__gallery figure:nth-of-type(1) {
+    grid-area: 1 / 1 / 3 / 2;
+}
+
+.product-single-page__gallery .wp-block-image img {
+    border-radius: .5rem;
+}
+
+.product-single-page__gallery .wp-block-image:first-child {
+    flex-grow: 1;
+}
+
+
+@media screen and (max-width: 90rem) {
+    .product-single-page__cover .wp-block-cover__inner-container {
+        padding: 0 clamp(2rem, -2.9231rem + 7.6923vw, 4rem);
+    }
+
+    .product-single-page__banner .wp-block-column:last-child {
+        flex-basis: clamp(18.75rem, -4.4808rem + 36.2981vw, 28.1875rem) !important;
+        padding: 0 clamp(2rem, -4rem + 12.5vw, 4rem);
+    }
+
+    .product-single-page__content .wp-block-columns .wp-block-column:last-child {
+        flex-basis: clamp(18.75rem, 0.9038rem + 27.8846vw, 26rem) !important;
+    }
+}
+
+@media screen and (max-width: 64rem) {
+    .product-single-page__content .wp-block-columns {
+        gap: 2em 2.5rem;
+    }
+}
+
+
+@media screen and (max-width: 48rem) {
+    .wp-block-gallery.product-single-page__gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .product-single-page__banner .wp-block-column:last-child {
+        flex-basis: clamp(18.75rem, -4.4808rem + 36.2981vw, 28.1875rem) !important;
+        padding: 0 2rem;
+    }
+
+    .product-single-page__banner .wp-block-column:last-child .wp-block-spacer:first-child{
+        display: none;
+    }
+
+    .product-single-page__content .wp-block-column:last-child {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .product-single-page__availability {
+        margin-block-start: 2rem !important;
+        order: 2;
+    }
+
+    .product-single-page__book-form {
+        order: 3;
+    }
+
+    .product-single-page__map {
+        order: 1;
+        margin-block-start: 0 !important;
+    }
+    
+    .product-single-page__video img{
+        height: 18.75rem;
+    }
+}
