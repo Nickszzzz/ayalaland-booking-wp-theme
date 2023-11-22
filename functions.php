@@ -11,26 +11,13 @@
  // Add Custom ACF Blocks
 include_once get_stylesheet_directory() . '/blocks/blocks.php';
 
-// add_action('acf/init', 'my_acf_init_block_types');
-// function my_acf_init_block_types() {
 
-//     // Check function exists.
-//     if( function_exists('acf_register_block_type') ) {
+// Add Shortcode
+include_once get_stylesheet_directory() . '/posts/custom_posts.php';
 
-//         // register a testimonial block.
-//         acf_register_block_type(array(
-//             'name'              => 'blog',
-//             'title'             => __('Blog'),
-//             'description'       => __('A custom blog block.'),
-//             'render_template'   => 'template-parts/blocks/blog/blogs.php',
-//             'category'          => 'formatting',
-//             'icon'              => 'text-page',
-//             'keywords'          => array( 'banner', 'quote' ),
-//         ));
+ // Add API
+ include_once get_stylesheet_directory() . '/api/v1.php';
 
-
-//     }
-// }
 
 
  add_action( 'after_setup_theme', 'twentytwentythree_support', 9999 );
@@ -82,7 +69,17 @@ function child_theme_enqueue_scripts_styles() {
 
 	wp_enqueue_script('child-theme-javascript', get_stylesheet_directory_uri() . '/assets/js/custom' . '.js', [ 'jquery' ] , $theme_version , true );
     wp_enqueue_script('child-theme-swiper-js',  'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array(), '11.0.4' , true );
+	wp_enqueue_script('ajax-script', get_stylesheet_directory_uri() . '/assets/js/ajax-script.js', array('jquery'), '1.0', true);
 
+	// Localize the script with the ajaxurl
+	wp_localize_script('ajax-script', 'ajax_object', array('ajaxurl' => admin_url('admin-ajax.php')));
+
+
+	// Enqueue Select2
+    wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array('jquery'), '4.1.0-rc.0', true);
+
+    // Enqueue Select2 CSS
+    wp_enqueue_style('select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
 }
 
 // CHILD THEME BLOCK VARIATIONS

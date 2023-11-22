@@ -8,13 +8,28 @@ function my_acf_init_block_types() {
 
         // register a testimonial block.
         acf_register_block_type(array(
-            'name'              => 'search filter',
-            'title'             => __('Search Filter'),
-            'description'       => __('A custom search filter block.'),
-            'render_template'   => 'blocks/filter/search_filter.php',
+            'name'              => 'room',
+            'title'             => __('Room'),
+            'description'       => __('A custom room block.'),
+            'render_template'   => 'blocks/room/room.php',
             'category'          => 'formatting',
-            'icon'              => 'search',
-            'keywords'          => array( 'filter', 'quote' ),
+            'icon'              => 'schedule',
+            'keywords'          => array( 'room', 'quote' ),
+        ));
+    }
+
+    // Check function exists.
+    if( function_exists('acf_register_block_type') ) {
+
+        // register a testimonial block.
+        acf_register_block_type(array(
+            'name'              => 'featured_locations',
+            'title'             => __('Featured Locations'),
+            'description'       => __('A custom featured_locations block.'),
+            'render_template'   => 'blocks/featured_locations/featured_locations.php',
+            'category'          => 'formatting',
+            'icon'              => 'location',
+            'keywords'          => array( 'featured_locations', 'quote' ),
         ));
     }
 }

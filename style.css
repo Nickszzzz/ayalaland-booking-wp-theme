@@ -89,6 +89,27 @@ footer {
     height: var(--__featured-location-img-height);
 
     width: calc(var(--__featured-location-column) - var(--__featured-location-grid-gap, 16px)*.85714) !important;
+    position: relative;
+}
+
+.featured__locations > .wp-block-image img{
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.featured__locations > .wp-block-image .wp-element-caption{
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: auto !important;
+    bottom: 0;
+}
+
+.featured__locations > .wp-block-image .wp-element-caption a {
+    color: #fff;
+
 }
 
 
@@ -138,7 +159,7 @@ footer {
     flex-direction: column;
 }
 
-.swiper.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide .wp-element-caption span {
+.swiper.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide .wp-element-caption span, .swiper.featured__meeting-rooms-slider .wp-block-gallery .swiper-slide .wp-element-caption span a {
     display: flex;
     align-items: center;
     gap: .5rem;
@@ -184,6 +205,28 @@ footer {
 
 .featured__meeting-rooms-slider .wp-block-gallery .swiper-slide{
     flex-grow: unset !important;
+    margin-left: 0 !important;
+    position: relative;
+    border-radius: 16px;
+  overflow: hidden;
+}
+
+.featured__meeting-rooms-slider .wp-block-gallery img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.featured__meeting-rooms-slider .wp-block-gallery .wp-element-caption{
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: 0;
+    height: auto !important;
+    margin-top: auto;
+    margin-bottom: auto;
+    background: linear-gradient(0deg, rgba(1, 18, 10, 0.40) 0%, rgba(1, 18, 10, 0.40) 100%);
 }
 
 
@@ -556,4 +599,29 @@ footer {
     .product-single-page__video img{
         height: 18.75rem;
     }
+}
+
+.advance__search_wrapper .gform_validation_errors {
+    display: none;
+}
+
+.advance__search_wrapper.gform_wrapper.gravity-theme .gfield_validation_message, .advance__search_wrapper.gform_wrapper.gravity-theme .validation_message {
+    display: none;
+
+}
+
+.select2-container {
+	width: 100% !important;
+}
+
+.gform_footer {
+	display: flex;
+}
+
+.gform_footer .gform_button {
+	align-self: start !important;
+}
+
+.select2-selection--single {
+	border: none !important;
 }
