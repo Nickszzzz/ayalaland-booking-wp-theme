@@ -74,5 +74,20 @@ jQuery(document).ready(function ($) {
             // },
           },
     });
+
+
+    var homeswiper = new Swiper(".home-slider-wrapper", {
+      slidesPerView: 1,
+      spaceBetween: 0,
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+      autoplay: {
+        delay: 3000,
+        disableOnInteraction: false,
+      },
+      loop: true, // Enable loop mode
+    });
     
 });

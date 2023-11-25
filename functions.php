@@ -403,3 +403,15 @@ add_action( 'woocommerce_admin_order_data_after_shipping_address', 'bbloomer_shi
 function bbloomer_shipping_phone_checkout_display( $order ){
     echo '<p><b>Shipping Phone:</b> ' . get_post_meta( $order->get_id(), '_shipping_phone', true ) . '</p>';
 }
+
+
+function custom_excerpt_length($length) {
+    return 20; // Change 20 to the number of words you want to show in the excerpt
+}
+
+function custom_excerpt_more($more) {
+    return ''; // Remove the default "[...]"
+}
+
+add_filter('excerpt_length', 'custom_excerpt_length');
+add_filter('excerpt_more', 'custom_excerpt_more');

@@ -10,7 +10,7 @@
     --__advance-search--spacing-3: 1.5rem;
     --__advance-search--spacing-4: .5rem;
     --__advance-search--input-width: 200px;
-
+    width: 100%;
     --__advance-search--form-wrapper: var(--__advance-search--spacing-1);
     --__advance-search--form-wrapper-radius: 4rem;
     --__advance-search--form-wrapper-fields-radius: var(--__advance-search--spacing-3);
@@ -77,6 +77,8 @@
 .gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio) {
     padding: var(--__advance-search--spacing-2) var(--__advance-search--spacing-1);
     border-radius: var(--__advance-search--form-wrapper-fields-radius);
+    height: 100%;
+    max-height: 50px;
 }
 
 .gform_wrapper.gravity-theme.book__now-form_wrapper .gfield .ginput_container:not(.ginput_container_radio),
@@ -109,6 +111,14 @@
     color: var(--wp--preset--color--contrast);
 }
 
+.select2-container--default .select2-selection--single {
+    background-color: transparent !important;
+}
+
+.select2-dropdown {
+    border: none !important;
+}
+
 .gform_wrapper.gravity-theme.advance__search_wrapper .gfield:nth-child(4) .ginput_container::before {
     font-family: var(--wp--preset--font-family--ayala);
     content: '\e900';
@@ -130,6 +140,7 @@
 
     background: var(--wp--preset--color--accent);
     color: var(--wp--preset--color--base-2);
+    height: 100%;
 }
 
 .gform_wrapper.gravity-theme.advance__search_wrapper .gform_footer,
