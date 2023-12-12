@@ -245,7 +245,8 @@
             }).mobiscroll('getInst');
         }
 
-        // Get the current date
+        function showCalendar(colorData) {
+            // Get the current date
         // Initialize the calendar
         var currentDate = new Date();
         var yesterday = new Date(currentDate);  
@@ -257,6 +258,7 @@
             inRangeInvalid: true,
             touchUi: true,
             min: currentDate,
+            colors: colorData,
             invalid: [
                 <?php 
                     if($invalidDaysString !== '') {
@@ -294,6 +296,23 @@
             },
             onTempChange: function (event, inst) {
                 // Your temp change logic here
+            }
+        });
+        }
+        
+        
+
+        $.ajax({
+            url: 'http://ayalaland-booking.local/wp-json/custom/v1/completed-orders/?product_id=<?php echo $id; ?>',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                showCalendar(data);
+
+            },
+            error: function (error) {
+                // Handle errors
+                console.error('Error:', error);
             }
         });
 

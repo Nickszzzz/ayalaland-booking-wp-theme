@@ -113,55 +113,6 @@ function get_disabled_dates_by_product_id_callback($data) {
         }
     }
     return $disabled_dates;
-
-
-//     $orders = wc_get_orders(array(
-//         'limit'      => -1,  // Retrieve all orders
-//         'meta_key'   => '_product_id',
-//         'meta_value' => $product_id,
-//     ));
-//     return $orders;
-// if ($product_id) {
-//     global $wpdb;
-
-//     // Prepare the SQL query to fetch relevant orders
-//     $query = $wpdb->prepare("
-//         SELECT lookup.*, orders.post_date
-//         FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
-//         INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
-//         WHERE lookup.product_id = %d 
-//         AND orders.status NOT IN ('trash', 'auto-draft')
-//     ", $product_id);
-
-//     return $query;
-
-//     $orders = $wpdb->get_results($query);
-
-//     return $orders;
-
-//     $disabled_dates = array();
-
-//     foreach ($orders as $order) {
-//         $checkin_date = new DateTime($order->post_date);
-
-//         // Format both dates as Y-m-d for accurate comparison
-//         $checkin_formatted = $checkin_date->format('Y-m-d');
-//         $current_date_formatted = date_create_from_format('Y-m-d H:i:s', $current_date)->format('Y-m-d');
-
-//         // Check if the date portion of checkin_date is equal to the current date
-//         if ($checkin_formatted == $current_date_formatted) {
-//             // Format dates for JavaScript
-//             $checkin_formatted = $checkin_date->format('H:i:s');
-//             $disabled_dates[] = $checkin_formatted;
-//         }
-//     }
-
-//     // Return the response
-//     return rest_ensure_response($disabled_dates);
-// } else {
-//     return new WP_Error('invalid_id', 'Invalid or missing ID parameter', array('status' => 400));
-// }
-
 }
 
 function register_disabled_dates_endpoint() {
@@ -185,3 +136,51 @@ function register_disabled_dates_endpoint() {
 }
 
 add_action('rest_api_init', 'register_disabled_dates_endpoint');
+
+
+// Register a custom REST API endpoint
+function custom_api_route() {
+    register_rest_route('custom/v1', '/completed-orders/', array(
+        'methods' => 'GET',
+        'callback' => 'get_completed_orders',
+    ));
+}
+add_action('rest_api_init', 'custom_api_route');
+
+// Callback function to handle the API request
+function get_completed_orders($data) {
+    global $wpdb;
+
+    $product_id = isset($data['product_id']) ? intval($data['product_id']) : 0;
+
+
+    $query   = new WC_Order_Query( array(
+        'limit'      => -1,
+        'orderby'    => 'date',
+        'order'      => 'DESC',
+        'return'     => 'ids',
+    ) );
+    $orders  = $query->get_orders();
+
+    $completed_dates = array();
+    foreach ( $orders as $order_id ) {
+        $order  = wc_get_order( $order_id );
+        // $completed_dates[ $order_id ]    = $order->get_date_completed();
+        $first_item = current($order->get_items());
+        $order_product_id = $first_item->get_product_id();
+        $all_meta = get_post_meta($order_id);
+        $order_date = date('Y-m-d', strtotime($all_meta['checkin'][0]));
+
+        if($order_product_id == $product_id) {
+            $date_completed = $order->get_date_completed();
+            if ($date_completed) {
+                $completed_dates[] = array(
+                    "date" => $order_date,
+                    "background" => "#F84F6E",
+                );
+            }
+        }
+    }
+    return $completed_dates;
+
+}

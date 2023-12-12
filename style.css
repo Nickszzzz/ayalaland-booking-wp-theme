@@ -1298,6 +1298,14 @@ input.md-mobile-picker-input {
     background-color: #30704C;
 }
 
+.mbsc-calendar-cell:is(.mbsc-calendar-day-colors) .mbsc-calendar-cell-inner {
+    background-color: inherit !important;
+}
+
+.mbsc-calendar-cell:is(.mbsc-calendar-day-colors) .mbsc-calendar-cell-inner .mbsc-calendar-cell-text {
+    color: #fff;
+}
+
 .mbsc-selected .mbsc-calendar-cell-inner div{
     background: transparent !important;
     border: none;
