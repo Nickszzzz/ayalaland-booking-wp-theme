@@ -1,7 +1,6 @@
 <?php 
-
-// Check if the parameters are set in the URL
-if (isset($_GET['room_location']) || isset($_GET['number_of_seats']) || isset($_GET['checkin']) || isset($_GET['checkout'])) {
+    // Check if the parameters are set in the URL
+if (isset($_GET['room_location']) || isset($_GET['number_of_seats']) || isset($_GET['checkin']) || isset($_GET['checkout']) || isset($_GET['orderby'])) {
     // Initialize an empty array to store meta queries
     $meta_queries = array();
 
@@ -10,42 +9,83 @@ if (isset($_GET['room_location']) || isset($_GET['number_of_seats']) || isset($_
     $number_of_seats = isset($_GET['number_of_seats']) ? absint($_GET['number_of_seats']) : '';
     $checkin = isset($_GET['checkin']) ? sanitize_text_field($_GET['checkin']) : '';
     $checkout = isset($_GET['checkout']) ? sanitize_text_field($_GET['checkout']) : '';
+    $orderby = isset($_GET['orderby']) ? sanitize_text_field($_GET['orderby']) : 'date'; // Default to 'date' if not set
 
     // Validate and add meta queries for the provided parameters
     if (!empty($room_location)) {
         $meta_queries[] = array(
-            'key' => 'location', // Replace with the actual meta key
+            'key' => 'room_description_location',
             'value' => $room_location,
-            'compare' => '='
+            'compare' => '=',
         );
     }
 
     if (!empty($number_of_seats)) {
         $meta_queries[] = array(
-            'key' => 'number_of_seats', // Replace with the actual meta key
+            'key' => 'room_description_maximum_number_of_seats',
             'value' => $number_of_seats,
-            'compare' => '='
+            'compare' => '>=',  
+            'type' => 'NUMERIC', // Specify the type to ensure numeric comparison
         );
     }
 
-    // Add more validation and meta queries for other parameters as needed
+    if (!empty($checkin)) {
+        $meta_queries[] = array(
+            'key' => 'operating_hours_start',
+            'value' => $checkin,
+            'compare' => '=',  
+        );
+    }
+
+    if (!empty($checkout)) {
+        $meta_queries[] = array(
+            'key' => 'operating_hours_end',
+            'value' => $checkout,
+            'compare' => '=',  
+        );
+    }
 
     // Build the query arguments dynamically
     $args = array(
         'post_type' => 'product', // Assuming 'product' is your custom post type
         'posts_per_page' => -1,   // Retrieve all matching posts
         'meta_query' => $meta_queries,
+        'post_status' => 'publish',
     );
+
+    // Set orderby based on the URL parameter
+    if ($orderby === 'price') {
+        $args['meta_key'] = 'rates_hourly_rate';
+        $args['orderby'] = 'meta_value_num';
+        $args['order'] = 'ASC';
+
+    } elseif ($orderby === 'price-desc') {
+        $args['meta_key'] = 'rates_hourly_rate';
+        $args['orderby'] = 'meta_value_num';
+        $args['order'] = 'DESC';
+    } elseif ($orderby === 'popularity') {
+        $args['meta_key'] = 'total_sales';
+        $args['orderby'] = 'meta_value_num';
+        $args['order'] = 'DESC';
+    } 
+    else {
+        $args['orderby'] = $orderby; // Use the provided orderby value from the URL
+    }
+
 } else {
     // If no parameters are provided, retrieve all products
     $args = array(
         'post_type' => 'product',
         'posts_per_page' => -1,
+        'order'          => 'DESC',
+    'post_status'    => 'publish',
     );
 }
 
-    // Create a new WP_Query instance
-    $query = new WP_Query($args);
+// Create a new WP_Query instance
+$query = new WP_Query($args);
+
+
 $num_results = $query->found_posts;
 if($num_results > 0) {
 ?>
@@ -74,11 +114,11 @@ echo '</p>';
         class="woocommerce wc-block-catalog-sorting has-font-size has-text-md-font-size " style="">
         <form class="woocommerce-ordering" method="get">
             <select name="orderby" class="orderby" aria-label="Shop order">
-                <option value="menu_order" selected="selected">Default sorting</option>
-                <option value="popularity">Sort by popularity</option>
-                <option value="date">Sort by latest</option>
-                <option value="price">Sort by price: low to high</option>
-                <option value="price-desc">Sort by price: high to low</option>
+                <option value="menu_order" <?php echo isset($_GET['orderby']) ? $orderby == '' ? 'selected="selected"' : '' : 'selected="seleted"'; ?>>Default sorting</option>
+                <option value="popularity" <?php echo isset($_GET['orderby']) ? $orderby == 'popularity' ? 'selected="selected"' : '' : ''; ?>>Sort by popularity</option>
+                <option value="date" <?php echo isset($_GET['orderby']) ? $orderby == 'date' ? 'selected="selected"' : '' : ''; ?>>Sort by latest</option>
+                <option value="price" <?php echo isset($_GET['orderby']) ? $orderby == 'price' ? 'selected="selected"' : '' : ''; ?>>Sort by price: low to high</option>
+                <option value="price-desc" <?php echo isset($_GET['orderby']) ? $orderby == 'price-desc' ? 'selected="selected"' : '' : ''; ?>>Sort by price: high to low</option>
             </select>
             <input type="hidden" name="paged" value="1">
         </form>
@@ -94,20 +134,14 @@ echo '</p>';
     if ($query->have_posts()) {
         while ($query->have_posts()) {
             $query->the_post();
+            $id = get_the_ID();
 
             ?>
         <li
             class="wp-block-post post-159 product type-product status-publish has-post-thumbnail product_cat-uncategorized first instock virtual purchasable product-type-simple">
             <div data-block-name="woocommerce/product-image" data-is-descendent-of-query-loop="true"
                 data-is-inherited="1" class="wc-block-components-product-image wc-block-grid__product-image " style="">
-                <a href="http://ayalaland-booking.local/product/alabang-town-center-corporate-center/" style=""> <img
-                        width="600" height="338"
-                        src="http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6-600x338.png"
-                        class="attachment-woocommerce_single size-woocommerce_single"
-                        alt="Alabang Town Center Corporate Center" data-testid="product-image"
-                        style="max-width:none;object-fit:cover;" decoding="async" fetchpriority="high"
-                        srcset="http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6-600x338.png 600w, http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6-300x169.png 300w, http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6-1024x576.png 1024w, http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6-768x432.png 768w, http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6-1536x864.png 1536w, http://ayalaland-booking.local/wp-content/uploads/2023/11/Featured-Location-6.png 1920w"
-                        sizes="(max-width: 600px) 100vw, 600px"></a>
+                <a href="<?php the_permalink(); ?>" style=""> <?php the_post_thumbnail(); ?></a>
             </div>
 
 
@@ -115,30 +149,41 @@ echo '</p>';
                 class="wp-block-group office-card__details has-global-padding is-layout-constrained wp-block-group-is-layout-constrained">
                 <h2 style="font-style:normal;font-weight:600;"
                     class="has-text-align-left wp-block-post-title has-display-xs-font-size"><a
-                        href="http://ayalaland-booking.local/product/alabang-town-center-corporate-center/"
-                        target="_self">Alabang Town Center Corporate Center</a></h2>
+                        href="<?php the_permalink(); ?>" target="_self"><?php the_title(); ?></a></h2>
 
 
                 <ul
                     class="is-style-hourly-rate has-accent-color has-text-color has-link-color wp-elements-7d4e976a87a56046e8880b9a798b2f32">
-                    <li>Hourly Rate: ₱ 650.00</li>
+                    <li>Hourly Rate: Php <?php echo number_format(get_field('rates_hourly_rate', $id), 2, '.', ','); ?>
+                    </li>
 
 
 
-                    <li>Whole Day Rate: ₱ 10,000.00</li>
+                    <?php 
+                    $daily_rate = get_field('rates_daily_rate', $id);
+                        if(!empty($daily_rate)) {
+                            ?>
+                    <li>Whole Day Rate: Php <?php 
+                                echo number_format(get_field('rates_daily_rate', $id), 2, '.', ','); 
+                            ?>
+                    </li>
+                    <?php
+                        }
+                    ?>
+
                 </ul>
 
 
 
                 <p
                     class="has-contrast-3-color has-text-color has-link-color wp-elements-e6163b8573891fa29a48f85a126e09a9">
-                    Set in the urban area of Madrigal Avenue in Alabang, the Alabang Town Center Corporate Center is an
-                    office complex built for new and established companies.</p>
+                    <?php the_excerpt(); ?></p>
 
 
 
                 <div class="wp-block-buttons is-layout-flex wp-block-buttons-is-layout-flex">
-                    <div class="wp-block-button"><a class="wp-block-button__link wp-element-button">View More
+                    <div class="wp-block-button"><a href="<?php the_permalink(); ?>"
+                            class="wp-block-button__link wp-element-button">View More
                             Details</a></div>
                 </div>
             </div>
@@ -156,3 +201,26 @@ echo '</p>';
     </ul>
 
 </div>
+<?php 
+// Function to get days between start and end
+function getDaysInRange($startDay, $endDay) {
+    $days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+
+    $startIndex = array_search($startDay, $days);
+    $endIndex = array_search($endDay, $days);
+
+    return array_slice($days, $startIndex, $endIndex - $startIndex + 1);
+}
+
+// Function to check if check-in and check-out are within operating days
+function isWithinOperatingDays($checkinDate, $checkoutDate, $operatingDays) {
+    $current = clone $checkinDate;
+    while ($current <= $checkoutDate) {
+        if (!in_array(strtolower($current->format('l')), $operatingDays)) {
+            return false;
+        }
+        $current->modify('+1 day');
+    }
+    return true;
+}
+?>

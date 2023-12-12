@@ -30,11 +30,12 @@ function create_resource_posts() {
         'hierarchical'       => false,
         'menu_position'      => 5,
         'menu_icon'          => 'dashicons-location-alt', // Icon name or URL
-        'supports'           => array( 'title', 'editor', 'thumbnail' ),
+        'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'author' ),
         'taxonomies'         => array(), // Remove the 'category' taxonomy
         'show_in_rest'       => true, // Enable REST API support
         'rest_base'          => 'locations', // Customize the REST API route
         'rest_controller_class' => 'WP_REST_Posts_Controller', // Use the default controller for posts
+        'author'             => true, // Enable support for post authors
     );
 
     register_post_type( 'location', $args );

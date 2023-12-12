@@ -11,6 +11,9 @@
  // Add Custom ACF Blocks
 include_once get_stylesheet_directory() . '/blocks/blocks.php';
 
+ // Add Custom Metabox
+ include_once get_stylesheet_directory() . '/metabox/orders.php';
+
 
 // Add Shortcode
 include_once get_stylesheet_directory() . '/posts/custom_posts.php';
@@ -18,6 +21,11 @@ include_once get_stylesheet_directory() . '/posts/custom_posts.php';
  // Add API
  include_once get_stylesheet_directory() . '/api/v1.php';
 
+ // Add Custom Logo
+include_once get_stylesheet_directory() . '/theme_assets/login_logo.php';
+
+ // Add Sitemap Shortcode
+ include_once get_stylesheet_directory() . '/theme_assets/sitemap.php';
 
 
  add_action( 'after_setup_theme', 'twentytwentythree_support', 9999 );
@@ -65,21 +73,27 @@ function child_theme_enqueue_scripts_styles() {
     wp_enqueue_style( 'child-theme-custom-woo-style', get_stylesheet_directory_uri() . '/assets/css/custom-woo-style.css', array(), $theme_version , 'all');
     wp_enqueue_style( 'child-theme-custom-forms-style', get_stylesheet_directory_uri() . '/assets/css/custom-forms-style.css', array(), $theme_version , 'all');
 	wp_enqueue_style( 'child-theme-swiper-css',  'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css', array() , '11.0.4' , 'all');
+	// Register and enqueue Magnific Popup CSS file
+    wp_enqueue_style('magnific-popup', 'https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.css', array(), '1.1.0', 'all');
+	wp_enqueue_style('mobiscroll-style',  get_stylesheet_directory_uri() . '/mobiscroll/css/mobiscroll.jquery.min.css');
 
 
-	wp_enqueue_script('child-theme-javascript', get_stylesheet_directory_uri() . '/assets/js/custom' . '.js', [ 'jquery' ] , $theme_version , true );
     wp_enqueue_script('child-theme-swiper-js',  'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js', array(), '11.0.4' , true );
 	wp_enqueue_script('ajax-script', get_stylesheet_directory_uri() . '/assets/js/ajax-script.js', array('jquery'), '1.0', true);
-
+	// Register and enqueue Magnific Popup JS file
+	wp_enqueue_script('magnific-popup', 'https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js', array('jquery'), '1.1.0', true);
 	// Localize the script with the ajaxurl
 	wp_localize_script('ajax-script', 'ajax_object', array('ajaxurl' => admin_url('admin-ajax.php')));
+	wp_localize_script('ajax-script', 'ajax_api_object', array('ajax_api_url' => home_url().'/wp-json'));
 
 
 	// Enqueue Select2
     wp_enqueue_script('select2-js', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js', array('jquery'), '4.1.0-rc.0', true);
-
+	wp_enqueue_script('mobiscroll-script', get_stylesheet_directory_uri() . '/mobiscroll/js/mobiscroll.jquery.min.js', array('jquery'), null, true);
     // Enqueue Select2 CSS
     wp_enqueue_style('select2-css', 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css');
+	wp_enqueue_script('child-theme-javascript', get_stylesheet_directory_uri() . '/assets/js/custom' . '.js', [ 'jquery' ] , $theme_version , true );
+
 }
 
 // CHILD THEME BLOCK VARIATIONS
@@ -393,10 +407,26 @@ function bbloomer_shipping_phone_checkout( $fields ) {
       'class' => array( 'form-row-wide' ),
       'validate' => array( 'phone' ),
       'autocomplete' => 'tel',
-      'priority' => 25,
+      'priority' => 100,
    );
    return $fields;
 }
+
+// Add Booking Notes field on the checkout page
+add_filter('woocommerce_checkout_fields', 'add_booking_notes_field');
+function add_booking_notes_field($fields) {
+    $fields['billing']['booking_notes'] = array(
+        'type'        => 'textarea',
+        'class'       => array('form-row-wide'),
+        'label'       => __('Booking Notes'),
+        'placeholder' => __('Some random notes here......'),
+        'required'    => false,
+        'clear'       => true,
+    );
+
+    return $fields;
+}
+
   
 add_action( 'woocommerce_admin_order_data_after_shipping_address', 'bbloomer_shipping_phone_checkout_display' );
  
@@ -415,3 +445,180 @@ function custom_excerpt_more($more) {
 
 add_filter('excerpt_length', 'custom_excerpt_length');
 add_filter('excerpt_more', 'custom_excerpt_more');
+
+
+
+
+function set_default_quantity_to_one( $cart ) {
+    foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+        $cart->set_quantity( $cart_item_key, 1 );
+    }
+}
+add_action( 'woocommerce_cart_loaded_from_session', 'set_default_quantity_to_one' );
+
+
+function hide_save_order_page($query) {
+    global $pagenow;
+
+    // Check if it's the admin pages list
+    if ($pagenow === 'edit.php' && isset($_GET['post_type']) && $_GET['post_type'] === 'page') {
+        $save_order_page_id = 680; // Replace with the actual page ID of your save-order page
+
+        // Exclude the save-order page from the query
+        $query->set('post__not_in', array($save_order_page_id));
+    }
+}
+add_action('pre_get_posts', 'hide_save_order_page');
+
+
+
+
+
+
+
+function add_query_vars_filter( $vars ){
+
+    $vars[] = "formtoken";
+
+    return $vars;
+
+}
+
+add_filter( 'query_vars', 'add_query_vars_filter' );
+
+get_query_var('formtoken');
+
+
+
+add_action('template_redirect', function(){
+
+
+
+    /** You can change your token value here as you like. As long as it's long enough.  */
+
+    $token = 'L1dsrqjQNca4Bado4M17I1iWPqZOLk69swvTxWkjN6tknx2C00JgJudIgb68Ul65c1eeO0Wmzoc6h7EdX2mdP';
+
+    $tokenURL = get_query_var('formtoken');
+
+    if ( ! is_page('thank-you') && ! is_page('check-out')) {
+        return;
+    }
+
+    if ($token == $tokenURL) {
+
+        return;
+
+    }
+
+    wp_redirect( get_home_url() );
+
+    exit;
+
+} );
+
+
+// add_filter( 'woocommerce_email_subject_customer_processing_order', 'bbloomer_change_processing_email_subject', 10, 2 );
+  
+// function bbloomer_change_processing_email_subject( $subject, $order ) {
+// 	$orders = wc_get_order($order->get_id());
+//     $first_item = current($orders->get_items());
+
+//    $subject = 'New Room Booking | '. $first_item->get_name();
+//    return $subject;
+// }
+
+// Add a filter to modify the order email recipient
+// add_filter('woocommerce_email_recipient_customer_processing_order', 'custom_order_email_recipient', 10, 2);
+
+// function custom_order_email_recipient($recipient, $order) {
+
+// 	// Get the customer email from the order object
+//     $customer_email = $order->get_billing_email();
+	
+//     // Change the recipient to the custom email address
+//     $recipient = 'jmnicolas4me@gmail.com';
+
+//     // Uncomment the line below to keep the original recipient as well
+//     $recipient .= ',' . $customer_email;
+
+//     return $recipient;
+// }
+
+add_filter('woocommerce_email_subject_new_order', 'custom_new_order_email_subject', 10, 2);
+
+function custom_new_order_email_subject($subject, $order) {
+	$orders = wc_get_order($order->get_id());
+	$first_item = current($orders->get_items());
+	$product_id = $first_item->get_product_id();
+    // Customize the subject as needed
+    $custom_subject = $subject.' | '.$first_item->get_name();
+
+    return $custom_subject;
+}
+
+// add_filter( 'woocommerce_email_recipient_new_order', 'bbloomer_dynamic_recipient', 9999, 2 );
+  
+// function bbloomer_dynamic_recipient( $recipient, $order ) {
+//    $email_recipient = 'jmnicolas4me@gmail.com';
+//    return $email_recipient;
+// }
+
+
+add_action('woocommerce_order_status_changed', 'send_custom_email_notifications', 10, 4 );
+function send_custom_email_notifications( $order_id, $old_status, $new_status, $order ){
+    if ( $new_status == 'cancelled' || $new_status == 'failed' ){
+        $wc_emails = WC()->mailer()->get_emails(); // Get all WC_emails objects instances
+        $customer_email = $order->get_billing_email(); // The customer email
+    }
+
+    if ( $new_status == 'cancelled' ) {
+        // change the recipient of this instance
+        $wc_emails['WC_Email_Cancelled_Order']->recipient = $customer_email;
+        // Sending the email from this instance
+        $wc_emails['WC_Email_Cancelled_Order']->trigger( $order_id );
+    } 
+    elseif ( $new_status == 'failed' ) {
+        // change the recipient of this instance
+        $wc_emails['WC_Email_Failed_Order']->recipient = $customer_email;
+        // Sending the email from this instance
+        $wc_emails['WC_Email_Failed_Order']->trigger( $order_id );
+    } 
+}
+
+add_shortcode('page_sitemap', 'page_sitemap');
+function page_sitemap($atts = array()){
+    $args = shortcode_atts(  array( 'exclude' => '' ), $atts);
+
+    $atts = shortcode_atts(array(
+        'id' => 'sitemap',
+        'title' => false,
+        'parent' => false, 
+        'authors' => false,
+        'depth' => false,
+        'sort_solumn' => 'menu_order,post_title',
+        'date_format' => 'j D Y',
+        'show_date' => false,
+        'exclude' => $args['exclude'],
+        'link_before' => false,
+        'link_after' => false,
+        'poststatus' => false,
+        'item_spacing' => false,
+        'walker' => false,
+        'list_style' => 'none',
+    ), $atts);
+
+    $parent = ($atts['parent'] !== false) ? $atts['parent'] : '0';
+    $authors = ($atts['authors'] !== false) ? $atts['authors'] : '';
+    $title = ($atts['title'] !== false) ? $atts['title'] : '';
+    $depth = ($atts['depth'] !== false) ? $atts['depth'] : '0';
+    $walker = ($atts['walker'] !== false) ? $atts['walker'] : '';
+    $date = ($atts['show_date'] !== false) ? $atts['show_date'] : '';
+    $exclude = ($atts['exclude'] !== false) ? $atts['exclude'] : '';
+    $poststatus = ($atts['poststatus'] !== false) ? $atts['poststatus'] : 'publish';
+    $spacing = ($atts['item_spacing'] === false) ? 'preserve' : 'discard';
+    $link_after = ($atts['link_after'] !== false) ? $atts['link_after'] : '';
+    $link_before = ($atts['link_before'] !== false) ? $atts['link_before'] : '';
+    $sitemap = wp_list_pages('child_of=' . $parent . '&authors=' . $authors . '&title_li=' . $title . '&depth=' . $depth . '&sort_column=' . $atts['sort_solumn'] . '&walker=' . $walker . '&date=' . $date . '&exclude=' . $exclude . '&post_status=' . $poststatus . '&item_spacing=' . $spacing . '&link_after=' . $link_after . '&link_before=' . $link_before . '&echo=0');
+    if ($sitemap != '') $sitemap = '<ul' . ($atts['id'] == '' ? '' : ' id="' . $atts['id'] . '"') . '>' . $sitemap . '</ul>';
+    return '' . $sitemap . '';
+}
