@@ -1,8 +1,9 @@
 <?php 
     // Get the current post ID on a single post page
 $location_id = get_the_ID();
-                    
-
+$author_id = get_post_field('post_author', $location_id);
+$author_info = get_userdata($author_id);
+$author_email = $author_info->user_email;
 ?>
 
 <div class="wp-block-columns are-vertically-aligned-bottom product-single-page__banner has-background is-layout-flex wp-container-core-columns-layout-1 wp-block-columns-is-layout-flex"
@@ -31,7 +32,7 @@ $location_id = get_the_ID();
 
 
 
-    <div class="wp-block-column is-vertically-aligned-bottom is-layout-flow wp-block-column-is-layout-flow"
+    <div class="wp-block-column last-child is-vertically-aligned-bottom is-layout-flow wp-block-column-is-layout-flow"
         style="flex-basis:451px">
         <div style="height:100px" aria-hidden="true" class="wp-block-spacer is-style-spacer-128"></div>
 
@@ -62,29 +63,35 @@ $location_id = get_the_ID();
                 class="is-style-office-amenities has-base-2-color has-text-color has-link-color wp-elements-215aefc385c3b5171d59acfc21738802">
 
                
-                <li><?php echo get_field('room_description_location', $location_id)->post_title; ?></li>
+                <li class="amenities"><?php echo get_field('room_description_location', $location_id)->post_title; ?></li>
+                <?php 
+                    if(get_field('amenity', $location_id) !== '') {
+                        ?>
+                        <li class="location"><?php echo get_field('amenity', $location_id); ?></li>
 
-                <li><?php echo get_field('amenity', $location_id); ?></li>
+                        <?php
+                    }
+                ?>
 
 
             </ul>
             <ul
-                class="is-style-office-amenities has-base-2-color has-text-color has-link-color wp-elements-215aefc385c3b5171d59acfc21738802">
+                class="is-style-office-amenities is-style-office-amenities-address has-base-2-color has-text-color has-link-color wp-elements-215aefc385c3b5171d59acfc21738802">
 
-                <li><?php echo get_field('complete_address', $location_id); ?></li>
+                <li class="address"><?php echo get_field('complete_address', $location_id); ?></li>
 
 
             </ul>
         </div>
-        <div class="wp-block-group">
+        <div class="wp-block-group" style="flex-basis: 451px;">
             <p class="has-base-2-color has-text-color has-link-color has-display-xs-font-size wp-elements-986039443a6925485bab9d9da11e66b3"
                 style="font-style:normal;font-weight:600">Contact Information</p>
 
 
 
-            <ul class="has-base-2-color has-text-color has-link-color wp-elements-11bca9c9f120966458c69c22419d442e">
+            <ul class="has-base-2-color has-text-color has-link-color wp-elements-11bca9c9f120966458c69c22419d442e single-room-cta">
                 <li><a
-                        href="mailto:yupangco.rick@ayalaland.com.ph"><?php echo get_field('cta_email_address', $location_id); ?></a>
+                        href="mailto:<?php echo get_field('cta_email_address', $location_id); ?>"  class="room-page-email-address"><?php echo get_field('cta_email_address', $location_id); ?></a>
                 </li>
 
 
@@ -94,7 +101,7 @@ $location_id = get_the_ID();
                     foreach($contact_numbers as $contact_number) {
                         ?>
                 <li><a
-                        href="tel: <?php echo $contact_number['phone_number']; ?>"><?php echo $contact_number['phone_number']; ?></a>
+                        href="tel: <?php echo $contact_number['phone_number']; ?>" class="room-page-contact"><?php echo $contact_number['phone_number']; ?></a>
                 </li>
                 <?php
                     }

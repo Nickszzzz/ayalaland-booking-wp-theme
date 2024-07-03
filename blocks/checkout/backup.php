@@ -12,7 +12,7 @@
                 </svg>
                 <p></p>
                 <div class="wc-block-components-notice-banner__content">
-                    <a href="https://dev.websiteprojectupdates.com/ayala/cart/" tabindex="1"
+                    <a href="https://dev.websiteprojectupdates.com/cart/" tabindex="1"
                         class="button wc-forward wp-element-button">View cart</a> “South Room A” has been added to your
                     cart. </div>
                 <p></p>
@@ -250,7 +250,7 @@
                                     <div class="woocommerce-privacy-policy-text">
                                         <p>Your personal data will be used to process your order, support your
                                             experience throughout this website, and for other purposes described in our
-                                            <a href="https://dev.websiteprojectupdates.com/ayala/?page_id=3"
+                                            <a href="https://dev.websiteprojectupdates.com/?page_id=3"
                                                 class="woocommerce-privacy-policy-link" target="_blank">privacy
                                                 policy</a>.</p>
                                     </div>
@@ -263,7 +263,7 @@
 
                                 <input type="hidden" id="woocommerce-process-checkout-nonce"
                                     name="woocommerce-process-checkout-nonce" value="46eb455fc1"><input type="hidden"
-                                    name="_wp_http_referer" value="/ayala/?wc-ajax=update_order_review">
+                                    name="_wp_http_referer" value="/?wc-ajax=update_order_review">
                             </div>
                         </div>
                     </div>

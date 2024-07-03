@@ -28,22 +28,47 @@
     style="margin-bottom:var(--wp--preset--spacing--20)">
     <table class="has-base-2-background-color has-background has-fixed-layout">
         <tbody>
-            <tr>
-                <td>GLA:</td>
-                <td><?php echo get_field('gla', $id); ?></td>
-            </tr>
-            <tr>
-                <td>No. of Floors</td>
-                <td><?php echo get_field('no_of_floors', $id); ?></td>
-            </tr>
-            <tr>
-                <td>Floor Plate:</td>
-                <td><?php echo get_field('floor_plate', $id); ?></td>
-            </tr>
-            <tr>
-                <td>Density:</td>
-                <td><?php echo get_field('density', $id); ?></td>
-            </tr>
+            <?php 
+                if(get_field('gla', $id) !== ''):
+                    ?>
+                    <tr>
+                        <td>GLA:</td>
+                            <td><?php echo get_field('gla', $id); ?></td>
+                        </tr>
+                    <?php
+                endif;
+            ?>
+             <?php 
+                if(get_field('no_of_floors', $id) !== ''):
+                    ?>
+                    <tr>
+                        <td>No. of Floors</td>
+                        <td><?php echo get_field('no_of_floors', $id); ?></td>
+                    </tr>
+                    <?php
+                endif;
+            ?>
+            <?php 
+                if(get_field('floor_plate', $id) !== ''):
+                    ?>
+                    <tr>
+                        <td>Floor Plate:</td>
+                        <td><?php echo get_field('floor_plate', $id); ?></td>
+                    </tr>
+                    <?php
+                endif;
+            ?>
+             <?php 
+                if(get_field('density', $id) !== ''):
+                    ?>
+                    <tr>
+                        <td>Density:</td>
+                        <td><?php echo get_field('density', $id); ?></td>
+                    </tr>
+                    <?php
+                endif;
+            ?>
+            
         </tbody>
     </table>
 </figure>

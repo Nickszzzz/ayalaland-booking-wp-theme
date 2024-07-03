@@ -27,9 +27,9 @@
                         class="gfield gfield--type-number gfield--width-full field_sublabel_below gfield--no-description field_description_below hidden_label gfield_visibility_visible"
                         data-js-reload="field_2_7">
                         <div class="ginput_container ginput_container_number"><input name="number_of_seats"
-                                id="input_2_7" type="number" step="any" value="" class="large"
+                                id="input_2_7" type="number" step="any" value="<?php echo get_field('room_description_maximum_number_of_seats', $id); ?>" class="large"
                                 max="<?php echo get_field('room_description_maximum_number_of_seats', $id); ?>"
-                                placeholder="Number of Seats" aria-invalid="false"></div>
+                                placeholder="Number of Seats" aria-invalid="false" readonly></div>
                     </div>
                     <div id="field_2_8"
                         class="gfield gfield--type-date gfield--input-type-datepicker gfield--datepicker-no-icon gfield--width-full field_sublabel_below gfield--no-description field_description_below hidden_label gfield_visibility_visible"
@@ -165,13 +165,13 @@
             }
             
             $invalidDaysString = getInvalidWeekDays($operating_day_starts, $operating_day_ends);
-            echo $end24Hour;
 
         ?>
 <script>
+	// setup Mobiscroll Moment plugin
     jQuery(document).ready(function ($) {
+		var baseURL = window.location.protocol + "//" + window.location.host + "/";
         function showDatePicker(selectedDate, invalidDate) {
-            console.log(invalidDate);
             function timeToMinutes(time) {
                 var parts = time.split(':');
                 return parseInt(parts[0]) * 60 + parseInt(parts[1]);
@@ -180,30 +180,37 @@
             var maxHour = '<?php echo $end24Hour;  ?>';
             // Get the current date and time
             var currentDate = new Date();
+            // Get the current hour (in 24-hour format) and format it as "00:00"
+            var currentHour = currentDate.getHours().toString().padStart(2, '0');
 
+            // Get the current minute and format it as "00"
+            var currentMinute = currentDate.getMinutes().toString().padStart(2, '0');
+
+            // Create a string in the "HH:mm" format
+            var formattedTime = currentHour + ":" + currentMinute;
+
+            var currentMinutes = timeToMinutes(formattedTime);
+            var comparisonMinutesMin = timeToMinutes(minHour);
+            var comparisonMinutesMax = timeToMinutes(maxHour);
             // Compare the current date and time with the future date and time
             if (currentDate > selectedDate) {
-                // Get the current hour (in 24-hour format) and format it as "00:00"
-                var currentHour = currentDate.getHours().toString().padStart(2, '0');
+            
 
-                // Get the current minute and format it as "00"
-                var currentMinute = currentDate.getMinutes().toString().padStart(2, '0');
-
-                // Create a string in the "HH:mm" format
-                var formattedTime = currentHour + ":" + currentMinute;
-
-                var currentMinutes = timeToMinutes(formattedTime);
-                var comparisonMinutes = timeToMinutes(minHour);
-
-                    if (currentMinutes > comparisonMinutes) {
+                    if (currentMinutes > comparisonMinutesMin  && currentMinutes < comparisonMinutesMax) {
                         minHour = formattedTime;
                     }
                     else {
                         minHour = '<?php echo $start24Hour; ?>'
+                        invalidDate.push( {
+                        end: maxHour,
+                        start: minHour
+                    });
+
                     }   
                 } else {
                     minHour = '<?php echo $start24Hour; ?>'
                 }
+			
                 return $('#demo-range').mobiscroll().datepicker({
                 controls: ['timegrid'],
                 select: 'range',
@@ -220,14 +227,15 @@
                     
                 },
                 onChange: function (event, inst) {
-                    var current_day_of_the_month = selectedDate.getDate();
+                    
                     event.value.map(i => {
                         if(i !== null) {
-                            i.setDate(current_day_of_the_month);
+                            i.setDate(selectedDate.getDate());
+                            i.setMonth(selectedDate.getMonth());
+                            i.setFullYear(selectedDate.getFullYear());
                         }
                     });
 
-                    console.log(event);
 
                     function removeTimeZoneAndFormat12Hour(inputDateString) {
                         const inputDate = new Date(inputDateString);
@@ -273,8 +281,22 @@
                 
             ],
             onCellClick: function (event, inst) {
+				// Define months array for formatting
+				const months = [
+				  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+				  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+				];
+
+				// Get individual components of the date
+				const month = months[event.date.getMonth()];
+				const day = event.date.getDate();
+				const year = event.date.getFullYear();
+
+				// Format the date string
+				const formattedDate = `${month} ${day}, ${year}`;
+
                 $.ajax({
-                    url: 'http://ayalaland-booking.local/wp-json/custom/v1/disabled-dates/?id=<?php echo $id; ?>&current_date='+event.date,
+                    url: baseURL+'/ayala/wp-json/custom/v1/disabled-dates/?id=<?php echo $id; ?>&current_date='+formattedDate,
                     type: 'GET',
                     dataType: 'json',
                     success: function (data) {
@@ -296,14 +318,14 @@
             },
             onTempChange: function (event, inst) {
                 // Your temp change logic here
-            }
+            },
         });
         }
         
         
 
         $.ajax({
-            url: 'http://ayalaland-booking.local/wp-json/custom/v1/completed-orders/?product_id=<?php echo $id; ?>',
+            url: baseURL+'/ayala/wp-json/custom/v1/completed-orders/?product_id=<?php echo $id; ?>',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
@@ -315,16 +337,34 @@
                 console.error('Error:', error);
             }
         });
+        var count = 0;
 
         $('#input_2_7').on('input', function(e) {
             var max = parseFloat($(this).attr('max'));
             var value = parseFloat($(this).val());
-
-            if (isNaN(value) || value > max) {
-                
+            if (value > max) {
+                var error_element = $('<span style="font-size: 12px; color: red;">The number of seats exceeds the room capacity of '+max+'!</span>');
+                count++;
+                if(count === 1) {
+                    $("#field_2_7").css({
+                        'border' : '1px solid red',
+                        'border-radius':'0.5rem'
+                    });
+                    $(error_element).insertAfter("#field_2_7");
+                }
                 // Reset the input value to the maximum allowed value
-                $(this).val(max);
-            } 
+                $(this).val(value);
+            }else {
+                $("#field_2_7").removeAttr('style');
+                $(this).parent().val(value);
+                var nextSibling = $("#field_2_7").next();
+
+                if (nextSibling.is('span')) {
+                    // Remove the next sibling (which is a span)
+                    nextSibling.remove();
+                }
+                count = 0;
+            }
         });
 
     });

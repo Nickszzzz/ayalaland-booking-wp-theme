@@ -104,7 +104,7 @@
                         <span id="input_1_10_date_format" class="screen-reader-text">MM slash DD slash YYYY</span>
                     </div>
                     <input type="hidden" id="gforms_calendar_icon_input_1_10" class="gform_hidden"
-                        value="https://dev.websiteprojectupdates.com/ayala/wp-content/plugins/gravityforms/images/datepicker/datepicker.svg">
+                        value="https://dev.websiteprojectupdates.com/wp-content/plugins/gravityforms/images/datepicker/datepicker.svg">
                 </div>
                 <div id="field_1_14"
                     class="gfield gfield--type-date gfield--input-type-datepicker gfield--datepicker-no-icon gfield--width-quarter field_sublabel_below gfield--no-description field_description_below hidden_label gfield_visibility_visible"
@@ -116,7 +116,7 @@
                         <span id="input_1_14_date_format" class="screen-reader-text">MM slash DD slash YYYY</span>
                     </div>
                     <input type="hidden" id="gforms_calendar_icon_input_1_14" class="gform_hidden"
-                        value="https://dev.websiteprojectupdates.com/ayala/wp-content/plugins/gravityforms/images/datepicker/datepicker.svg">
+                        value="https://dev.websiteprojectupdates.com/wp-content/plugins/gravityforms/images/datepicker/datepicker.svg">
                 </div>
             </div>
         </div>

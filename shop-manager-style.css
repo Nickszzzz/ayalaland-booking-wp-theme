@@ -1,0 +1,3 @@
+.editor-post-panel__row.editor-post-author__panel, .inline-edit-author, #authordiv {
+    display: none !important;
+}

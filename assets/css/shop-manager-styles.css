@@ -1,0 +1,7 @@
+.post-type-location .page-title-action {
+    display: none;
+}
+
+.menu-icon-location .wp-first-item + li {
+    display: none;
+}

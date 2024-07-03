@@ -14,18 +14,27 @@ include_once get_stylesheet_directory() . '/blocks/blocks.php';
  // Add Custom Metabox
  include_once get_stylesheet_directory() . '/metabox/orders.php';
 
+  // Add Custom Metabox
+  include_once get_stylesheet_directory() . '/center_admin/center_admin.php';
+
 
 // Add Shortcode
 include_once get_stylesheet_directory() . '/posts/custom_posts.php';
 
  // Add API
  include_once get_stylesheet_directory() . '/api/v1.php';
+ include_once get_stylesheet_directory() . '/api/v2.php';
+ include_once get_stylesheet_directory() . '/api/utils.php';
+ include_once get_stylesheet_directory() . '/api/JWT.php';
 
  // Add Custom Logo
 include_once get_stylesheet_directory() . '/theme_assets/login_logo.php';
 
  // Add Sitemap Shortcode
  include_once get_stylesheet_directory() . '/theme_assets/sitemap.php';
+
+  // Register Woocommerce Customer
+  include_once get_stylesheet_directory() . '/woocommerce_customs/register.php';
 
 
  add_action( 'after_setup_theme', 'twentytwentythree_support', 9999 );
@@ -84,7 +93,7 @@ function child_theme_enqueue_scripts_styles() {
 	wp_enqueue_script('magnific-popup', 'https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/jquery.magnific-popup.min.js', array('jquery'), '1.1.0', true);
 	// Localize the script with the ajaxurl
 	wp_localize_script('ajax-script', 'ajax_object', array('ajaxurl' => admin_url('admin-ajax.php')));
-	wp_localize_script('ajax-script', 'ajax_api_object', array('ajax_api_url' => home_url().'/wp-json'));
+	wp_localize_script('ajax-script', 'ajax_api_object', array('ajax_api_url' => home_url().'/ayala/wp-json'));
 
 
 	// Enqueue Select2
@@ -99,6 +108,16 @@ function child_theme_enqueue_scripts_styles() {
 // CHILD THEME BLOCK VARIATIONS
 add_action( 'enqueue_block_editor_assets', 'child_theme_block_variations' );
 
+function custom_admin_styles() {
+    wp_enqueue_style('custom-admin-style', get_stylesheet_directory_uri() . '/admin-style.css');
+    if (current_user_can('shop_manager')) {
+        // Enqueue the custom style for shop managers
+        wp_enqueue_style('shop-manager-style', get_stylesheet_directory_uri() . '/shop-manager-style.css');
+    }
+}
+add_action('admin_enqueue_scripts', 'custom_admin_styles');
+
+
 function child_theme_block_variations() {
 
     $theme_version = wp_get_theme()->get( 'Version' );
@@ -110,6 +129,13 @@ function child_theme_block_variations() {
     wp_enqueue_script('child-theme-block-styles-variation', get_stylesheet_directory_uri() . '/assets/js/block-styles-variation' . '.js',  array(), $theme_version , true );
 	// wp_enqueue_script('child-theme-block-variations', get_template_directory_uri() . '/assets/js/block-variation' . '.js', array() , $theme_version , true );
 }
+
+function custom_admin_style_enqueue() {
+    wp_enqueue_style('custom-admin-style', get_stylesheet_directory_uri() . '/assets/css/admin-style.css');
+	wp_enqueue_script('custom-admin-script', get_stylesheet_directory_uri() . '/assets/js/admin-custom.js', array('jquery'), '1.0', true);
+}
+add_action('admin_enqueue_scripts', 'custom_admin_style_enqueue');
+
 
 
 // CHILD THEME LOAD SCRIPTS AND STYLES
@@ -517,32 +543,32 @@ add_action('template_redirect', function(){
 } );
 
 
-// add_filter( 'woocommerce_email_subject_customer_processing_order', 'bbloomer_change_processing_email_subject', 10, 2 );
+add_filter( 'woocommerce_email_subject_customer_processing_order', 'bbloomer_change_processing_email_subject', 10, 2 );
   
-// function bbloomer_change_processing_email_subject( $subject, $order ) {
-// 	$orders = wc_get_order($order->get_id());
-//     $first_item = current($orders->get_items());
+function bbloomer_change_processing_email_subject( $subject, $order ) {
+	$orders = wc_get_order($order->get_id());
+    $first_item = current($orders->get_items());
 
-//    $subject = 'New Room Booking | '. $first_item->get_name();
-//    return $subject;
-// }
+   $subject = 'New Room Booking | '. $first_item->get_name();
+   return $subject;
+}
 
 // Add a filter to modify the order email recipient
-// add_filter('woocommerce_email_recipient_customer_processing_order', 'custom_order_email_recipient', 10, 2);
+add_filter('woocommerce_email_recipient_customer_processing_order', 'custom_order_email_recipient', 10, 2);
 
-// function custom_order_email_recipient($recipient, $order) {
+function custom_order_email_recipient($recipient, $order) {
 
-// 	// Get the customer email from the order object
-//     $customer_email = $order->get_billing_email();
+	// Get the customer email from the order object
+    $customer_email = $order->get_billing_email();
 	
-//     // Change the recipient to the custom email address
-//     $recipient = 'jmnicolas4me@gmail.com';
+    // Change the recipient to the custom email address
+    $recipient = 'jmnicolas4me@gmail.com';
 
-//     // Uncomment the line below to keep the original recipient as well
-//     $recipient .= ',' . $customer_email;
+    // Uncomment the line below to keep the original recipient as well
+    $recipient .= ',' . $customer_email;
 
-//     return $recipient;
-// }
+    return $recipient;
+}
 
 add_filter('woocommerce_email_subject_new_order', 'custom_new_order_email_subject', 10, 2);
 
@@ -622,3 +648,115 @@ function page_sitemap($atts = array()){
     if ($sitemap != '') $sitemap = '<ul' . ($atts['id'] == '' ? '' : ' id="' . $atts['id'] . '"') . '>' . $sitemap . '</ul>';
     return '' . $sitemap . '';
 }
+
+function add_viewport_meta_tag() {
+    echo '<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">' . "\n";
+}
+
+add_action('wp_head', 'add_viewport_meta_tag');
+add_action( 'admin_menu', 'rename_woocommerce_menu_and_icon', 999 );
+
+function rename_woocommerce_menu_and_icon() 
+{
+    global $menu;
+
+    // Pinpoint menu item
+    $woo = recursive_array_search_php_91365( 'Products', $menu );
+
+    // Validate
+    if( !$woo )
+        return;
+
+    // Update the menu name and icon
+    $menu[$woo][0] = 'Meeting Rooms';
+    $menu[$woo][6] = 'dashicons-admin-home'; // Change this line to the desired dashicon class
+}
+
+// http://www.php.net/manual/en/function.array-search.php#91365
+function recursive_array_search_php_91365( $needle, $haystack ) 
+{
+    foreach( $haystack as $key => $value ) 
+    {
+        $current_key = $key;
+        if( 
+            $needle === $value 
+            OR ( 
+                is_array( $value )
+                && recursive_array_search_php_91365( $needle, $value ) !== false 
+            )
+        ) 
+        {
+            return $current_key;
+        }
+    }
+    return false;
+}
+
+// functions.php or your custom plugin file
+
+function filter_post_object_query_by_current_user($args, $field, $post_id) {
+    // Check if the current user is an administrator
+    if (current_user_can('administrator')) {
+        // Allow administrators to see all posts
+        return $args;
+    }
+
+    // Get the current user's ID
+    $current_user_id = get_current_user_id();
+
+    // Modify the query parameters to include only posts by the current user
+    $args['author'] = $current_user_id;
+
+    return $args;
+}
+
+add_filter('acf/fields/post_object/query', 'filter_post_object_query_by_current_user', 10, 3);
+
+
+function add_cors_http_header(){
+    header("Access-Control-Allow-Origin: *");
+}
+add_action('init','add_cors_http_header');
+
+
+function restrict_author_change_to_administrator($data, $postarr) {
+    // Check if the current user can manage options (typically only administrators)
+    if (!current_user_can('manage_options')) {
+        // If the post is being updated (not created), revert the post_author to the current author's ID
+        if (!empty($postarr['ID'])) {
+            $current_post = get_post($postarr['ID']);
+            if ($current_post) {
+                $data['post_author'] = $current_post->post_author;
+            }
+        }
+    }
+    return $data;
+}
+add_filter('wp_insert_post_data', 'restrict_author_change_to_administrator', 10, 2);
+
+
+function remove_author_meta_box() {
+    global $post;
+
+    // Check if we are on the 'location' post type edit screen
+    if ($post && 'location' === $post->post_type) {
+        remove_meta_box('authordiv', 'location', 'normal');
+    }
+}
+add_action('add_meta_boxes', 'remove_author_meta_box');
+
+
+add_action('admin_menu', 'remove_built_in_roles');
+
+function remove_built_in_roles() {
+    global $wp_roles;
+
+    $roles_to_remove = array('subscriber', 'contributor', 'author', 'editor', 'admin');
+
+    foreach ($roles_to_remove as $role) {
+        if (isset($wp_roles->roles[$role])) {
+            $wp_roles->remove_role($role);
+        }
+    }
+}
+

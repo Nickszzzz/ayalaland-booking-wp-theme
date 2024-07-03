@@ -20,12 +20,7 @@ defined( 'ABSPATH' ) || exit;
 /*
  * @hooked WC_Emails::email_header() Output the email header
  */
-// add_action('woocommerce_email_header', 'custom_new_order_email_header', 10, 2);
 
-function custom_new_order_email_header($email_heading, $email) {
-    // Output your custom content here
-    echo '<p>This is a custom content added to the new order email header.</p>';
-}
 
 	$id = $order->get_id();
     $orders = wc_get_order($order->get_id());
@@ -36,29 +31,22 @@ function custom_new_order_email_header($email_heading, $email) {
 	$booking_notes = get_post_meta($order->get_id(), 'booking_notes', true);
 	$checkin = get_post_meta($order->get_id(), 'checkin', true);
 	$checkout = get_post_meta($order->get_id(), 'checkout', true);
-	
+	$number_of_seats = get_post_meta($order->get_id(), 'number_of_seats', true);
+	$billing_email = get_post_meta($id, '_billing_email', true);
 	// Convert the date and time string to a DateTime object
 	$date_time_object_checkin = DateTime::createFromFormat('M j, Y, g:i:s A', $checkin);
 	
 	// Format the date as "December 4, 2023"
 	$formatted_date= $date_time_object_checkin ? $date_time_object_checkin->format('F j, Y') : 'Invalid date';
 	
-	if (!function_exists('formatTime')) {
-		function formatTime($date_time_string, $output_format = 'g:i A') {
-			// Convert the date and time string to a DateTime object
-			$date_time_object = DateTime::createFromFormat('M j, Y, g:i:s A', $date_time_string);
+	// Parse the date and time using DateTime
+    $checkinDateTime = new DateTime($checkin);
+    $checkoutDateTime = new DateTime($checkout);
+
+    // Format the time as HH:mm:ss A
+    $checkin_time = $checkinDateTime->format('g:i:s A');
+    $checkout_time = $checkoutDateTime->format('g:i:s A');
 	
-			if ($date_time_object) {
-				// Format the time as needed
-				return $date_time_object->format($output_format);
-			} else {
-				return 'Invalid date';
-			}
-		}
-	}
-	
-	$checkin_time = formatTime($checkin);
-	$checkout_time = formatTime($checkout);
     // Get all post meta for the order
     $all_meta = get_post_meta($id);
 
@@ -67,22 +55,16 @@ function custom_new_order_email_header($email_heading, $email) {
 
     $user_data = get_userdata($author_id);
 
-    if ($user_data) {
-        // Get user email
-        $user_email = $user_data->user_email;
+    // Get user email
+    $user_email = $user_data->user_email;
+    $display_name = $user_data->display_name;
+
+    // Get user roles (user type)
+    $user_roles = $user_data->roles;
+
+    // Assuming a user may have multiple roles, use the first role if available
+    $user_type = !empty($user_roles) ? $user_roles[0] : 'No Role';
     
-        // Get user roles (user type)
-        $user_roles = $user_data->roles;
-    
-        // Assuming a user may have multiple roles, use the first role if available
-        $user_type = !empty($user_roles) ? $user_roles[0] : 'No Role';
-    
-        // Now, $user_email contains the email, and $user_type contains the user type (role)
-        
-        // Example: Output the email and user type
-        // echo 'User Email: ' . $user_email . '<br>';
-        // echo 'User Type: ' . ucwords(str_replace('_', ' ', $user_type));
-    }
 
 ?>
 
@@ -112,29 +94,31 @@ function custom_new_order_email_header($email_heading, $email) {
 
 $subject = 'New Room Booking | '.$first_item->get_name();
 $email_content = '
-    <p style="margin: 0;">'.ucwords(str_replace('_', ' ', $user_type)).',</p>
+    <p style="margin: 0;">Dear '.$display_name.',</p>
     <br>
-    <p style="margin: 0;">A new room has been submitted through the website. Below are the details:</p>
+    <p style="margin: 0;">I hope this message finds you well. We appreciate your continued use of our facilities.</p>
     <br>
-    <p style="margin: 0;">Meeting Room: '.$first_item->get_name().'</p>
-    <p style="margin: 0;">Location: '.$location.'</p>
+    <p style="margin: 0;">We would like to inform you that a meeting room booking request has been submitted for '.$formatted_date.' '.$checkin_time.' to '.$checkout_time.'. <br>The details are as follows:</p>
     <br>
-    <p style="margin: 0;">Booking Details:</p>
-    <p style="margin: 0;">Order #'.$order->get_id().' details </p>
-    <p style="margin: 0;">'.$formatted_date.' </p>
-    <p style="margin: 0;">'.$checkin.' to '.$checkout.' </p>
+    <ul>
+        <li><b>Meeting Title:</b> '.$first_item->get_name().'</li>
+        <li><b>Date:</b> '.$formatted_date.'</li>
+        <li><b>Time:</b> '.$checkin_time.' to '.$checkout_time.'</li>
+        <li><b>Number of Attendees:</b> '.$number_of_seats.'</li>
+    </ul>
     <br>
-    <p style="margin: 0;">Contact Information: </p>
-    <p style="margin: 0;">'.$order->get_billing_first_name().' '.$order->get_billing_last_name().'</p>
-    <p style="margin: 0;">'.$order->get_billing_email().' </p>
-    <p style="margin: 0;">'.$order->get_billing_phone().' </p>
+    <p style="margin: 0;">If you have any specific preferences or additional requirements, please reply to this email at your <br>earliest convenience. The Admin team will be coordinating the reservation, and we will do our <br>best to accommodate your needs.</p>
     <br>
-    <p style="margin: 0;">Additional Notes: </p>
-    <p style="margin: 0;">'.$booking_notes.' </p>';
+    <p style="margin: 0;">Thank you for your cooperation, and we look forward to assisting you with a successful meeting.</p>
+    <br>
+    <br>
+    <p style="margin: 0;">Best regards,</p>
+    <p style="margin: 0;">Ayala Land Offices</p>';
 
 $headers = array('Content-Type: text/html; charset=UTF-8');
 
 // Send the email
 wp_mail($user_email, $subject, $email_content, $headers);
+
 
 ?>

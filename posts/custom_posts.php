@@ -31,7 +31,7 @@ function create_resource_posts() {
         'menu_position'      => 5,
         'menu_icon'          => 'dashicons-location-alt', // Icon name or URL
         'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'author' ),
-        'taxonomies'         => array(), // Remove the 'category' taxonomy
+        'taxonomies'         => array( 'post_tag' ), // Add 'post_tag' taxonomy for tags
         'show_in_rest'       => true, // Enable REST API support
         'rest_base'          => 'locations', // Customize the REST API route
         'rest_controller_class' => 'WP_REST_Posts_Controller', // Use the default controller for posts
@@ -41,3 +41,46 @@ function create_resource_posts() {
     register_post_type( 'location', $args );
 }
 add_action( 'init', 'create_resource_posts' );
+
+
+function create_booking_posts() {
+    $labels = array(
+        'name'               => _x( 'Bookings', 'post type general name', 'booking' ),
+        'singular_name'      => _x( 'Booking', 'post type singular name', 'booking' ),
+        'menu_name'          => _x( 'Bookings', 'admin menu', 'booking' ),
+        'name_admin_bar'     => _x( 'Booking', 'add new on admin bar', 'booking' ),
+        'add_new_item'       => __( 'Add New Booking', 'booking' ),
+        'new_item'           => __( 'New Booking', 'booking' ),
+        'edit_item'          => __( 'Edit Booking', 'booking' ),
+        'view_item'          => __( 'View Booking', 'booking' ),
+        'all_items'          => __( 'All Bookings', 'booking' ),
+        'search_items'       => __( 'Search Bookings', 'booking' ),
+        'parent_item_colon'  => __( 'Parent Bookings:', 'booking' ),
+        'not_found'          => __( 'No Bookings found.', 'booking' ),
+        'not_found_in_trash' => __( 'No Bookings found in Trash.', 'booking' ),
+    );
+
+    $args = array(
+        'labels'             => $labels,
+        'public'             => true,
+        'publicly_queryable' => true,
+        'show_ui'            => true,
+        'show_in_menu'       => true,
+        'query_var'          => true,
+        'rewrite'            => array( 'slug' => 'bookings' ),
+        'capability_type'    => 'post',
+        'has_archive'        => true,
+        'hierarchical'       => false,
+        'menu_position'      => 5,
+        'menu_icon'          => 'dashicons-tagcloud',
+        'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'delete_post' ),
+        'show_in_rest'       => true,
+        'rest_base'          => 'bookings',
+        'rest_controller_class' => 'WP_REST_Posts_Controller',
+        'author'             => true,
+    );
+
+    register_post_type( 'booking', $args );
+}
+add_action( 'init', 'create_booking_posts' );
+

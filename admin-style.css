@@ -1,0 +1,8 @@
+.post-type-booking .untrash {
+    display: none !important;
+}
+
+mark.order-status  {
+    background-color: transparent;
+}
+

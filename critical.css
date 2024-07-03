@@ -43,10 +43,16 @@ nav[aria-label="Navigation 2"] {
 
 }
 
-@media screen and (max-width: 23.4375rem) {
+/* @media screen and (max-width: 23.4375rem) {
     nav[aria-label="Navigation"] .wp-block-buttons {
         display: none;
     }
+} */
+
+@media screen and (max-width: 400px) {
+  nav[aria-label="Navigation"] .wp-block-buttons {
+    display: none;
+  }
 }
 
 
@@ -130,10 +136,44 @@ ul {
     gap: 1rem 2rem;
 }
 
-.is-style-office-amenities li::before {
-    content: '\e903';
+.is-style-office-amenities li:is(.amenities):before {
+    content: '\e904';
     font-family: var(--wp--preset--font-family--ayala);
     font-size: 1.25rem;
     line-height: 1.25rem;
 }
-=
+
+.is-style-office-amenities li:is(.location):before {
+    content: '\e909';
+    font-family: var(--wp--preset--font-family--ayala);
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+}
+
+.is-style-office-amenities-address li:before {
+    content: '\e907' !important;
+    font-family: var(--wp--preset--font-family--ayala);
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+}
+
+.room-page-email-address:before {
+    content: '\e906' !important;
+    font-family: var(--wp--preset--font-family--ayala);
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+}
+.room-page-email-address, .room-page-contact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+
+.room-page-contact:before {
+    content: '\e908' !important;
+    font-family: var(--wp--preset--font-family--ayala);
+    font-size: 1.25rem;
+    line-height: 1.25rem;
+}
+

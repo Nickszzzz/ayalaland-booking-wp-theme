@@ -1,8 +1,8 @@
 <?php
 /**
- * Customer processing order email
+ * Customer completed order email
  *
- * This template can be overridden by copying it to yourtheme/woocommerce/emails/customer-processing-order.php.
+ * This template can be overridden by copying it to yourtheme/woocommerce/emails/customer-completed-order.php.
  *
  * HOWEVER, on occasion WooCommerce will need to update template files and you
  * (the theme developer) will need to copy the new files to your theme to
@@ -10,7 +10,7 @@
  * happen. When this occurs the version of the template file will be bumped and
  * the readme will list any important changes.
  *
- * @see https://docs.woocommerce.com/document/template-structure/
+ * @see https://woo.com/document/template-structure/
  * @package WooCommerce\Templates\Emails
  * @version 3.7.0
  */
@@ -18,9 +18,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-defined( 'ABSPATH' ) || exit;
-
 
 $id = $order->get_id();
 $orders = wc_get_order($id);
@@ -73,7 +70,7 @@ $user_type = !empty($user_roles) ? $user_roles[0] : 'No Role';
 echo '
 <p style="margin: 0;">Dear '.get_post_meta($id, '_billing_first_name', true).' '.get_post_meta($id, '_billing_last_name', true).',</p>
 <br>
-<p style="margin: 0;">We are pleased to inform you that your meeting room booking request for '.$formatted_date.' '.$checkin_time.' to '.$checkout_time.'. <br>has been approved. Here are the details:</p>
+<p style="margin: 0;">Congratulations! Your meeting room booking for [date and time] has been successfully confirmed, and we have received your payment.</p>
 <br>
 <ul style="text-align: left;">
 	<li><b>Meeting Title:</b> '.$first_item->get_name().'</li>
@@ -82,11 +79,13 @@ echo '
 	<li><b>Number of Attendees:</b> '.$number_of_seats.'</li>
 </ul>
 <br>
-<p style="margin: 0;">Please feel free to reach out if you have any additional requirements or questions. We hope your meeting is productive, and thank you for choosing our facilities.</p>
+<p style="margin: 0;">You will receive a separate email with the booking confirmation and additional details. If you have any further inquiries or require assistance, please don\'t hesitate to reach out to us at [your contact information].</p>
+<br>
+<p style="margin: 0;">Thank you for choosing our facilities, and we wish you a successful and productive meeting.</p>
 <br>
 <br>
 <p style="margin: 0;">Best regards,</p>
-<p style="margin: 0;">Ayala Land Offices</p>';
+<p style="margin: 0;">[Your Name] [Your Position] [Your Contact Information]</p>';
 
 ?>
 </div>

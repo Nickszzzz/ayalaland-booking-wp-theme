@@ -113,7 +113,7 @@
 
 
         $.ajax({
-            url: 'http://ayalaland-booking.local/wp-json/custom/v1/disabled-dates/?id=<?php echo $id; ?>',
+            url: 'http://ayalaland-booking.local/ayala/wp-json/custom/v1/disabled-dates/?id=<?php echo $id; ?>',
             type: 'GET',
             dataType: 'json',
             success: function (data) {

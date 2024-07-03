@@ -53,7 +53,6 @@ jQuery(document).ready(function($) {
 function updateSelect2Value(paramName, targetElementId) {
     // Get the query string from the current URL
     var queryString = window.location.search;
-
     // Create a URLSearchParams object to parse the query string
     var urlParams = new URLSearchParams(queryString);
 
@@ -61,22 +60,29 @@ function updateSelect2Value(paramName, targetElementId) {
     var paramValue = urlParams.get(paramName);
     if(paramValue !== null) {
     // Make an AJAX request
-    $(targetElementId+" .select2-selection__placeholder").text('');
+        if(paramValue === '') {
+            $(targetElementId+" .select2-selection__placeholder").text('Search Location');
 
-    $.ajax({
-        url: ajax_api_object.ajax_api_url+'/wp/v2/locations/'+paramValue,
-        type: 'GET',
-        success: function(data) {
-            // Handle the data received from the API
-            // Update the value of the specified input element
-            $(targetElementId+" .select2-selection__placeholder").text(data.title.rendered);
+        }else {
+            $(targetElementId+" .select2-selection__placeholder").text('');
 
-        },
-        error: function(error) {
-            // Handle errors
-            console.error('Error fetching data:', error);
+            $.ajax({
+                url: ajax_api_object.ajax_api_url+'/wp/v2/locations/'+paramValue,
+                type: 'GET',
+                success: function(data) {
+                    // Handle the data received from the API
+                    // Update the value of the specified input element
+                    $(targetElementId+" .select2-selection__placeholder").text(data.title.rendered);
+        
+                },
+                error: function(error) {
+                    // Handle errors
+                    console.error('Error fetching data:', error);
+                }
+            });
         }
-    });
+
+    
     }
 
    

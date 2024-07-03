@@ -79,6 +79,10 @@ jQuery(document).ready(function ($) {
   var homeswiper = new Swiper(".home-slider-wrapper", {
     slidesPerView: 1,
     spaceBetween: 0,
+    pagination: {
+      el: ".swiper-pagination",
+      dynamicBullets: true,
+    },
     navigation: {
       nextEl: ".swiper-button-next",
       prevEl: ".swiper-button-prev",
@@ -123,10 +127,14 @@ jQuery(document).ready(function ($) {
 
 jQuery(document).ready(function ($) {
   $("#gform_submit_button_2").on('click', function (e) {
-
-    if (!$("#input_2_7").val() || !$("#input_2_8").val() || !$("#input_2_9").val() || !$('input[name="rate"]:checked').length > 0) {
+    var max = parseFloat($("#input_2_7").attr('max'));
+    var value = parseFloat($("#input_2_7").val());
+    value = isNaN(value) ? 0 : value;
+    if (!$("#input_2_7").val() || !$("#input_2_8").val() || !$("#input_2_9").val() || !$('input[name="rate"]:checked').length > 0 || value > max) {
       e.preventDefault();
-
+      
+      // console.log(value > max);
+      console.log(value);
       if (!$("#input_2_7").val()) {
         $("#field_2_7 .ginput_container").css("border-color", "red");
       }
@@ -1176,7 +1184,7 @@ jQuery(document).ready(function ($) {
 
   $('#gform_submit_button_1').on('click', function(e) {
 
-    if($("#input_1_8").val() || $("#input_1_10").val() || $("#input_1_21").val() || $("#input_1_22").val()) {
+    if($("#input_1_8").val() || $("#input_1_16").val() || $("#input_1_21").val() || $("#input_1_22").val()) {
       $("#gform_1").submit();
 
     }else {
@@ -1225,4 +1233,17 @@ gform.addFilter( 'gform_datepicker_options_pre_init', function( optionsObj, form
 });
 
 
+
+
+jQuery(document).ready(function ($) {
+  var baseUrl = window.location.protocol + '//' + window.location.host;
+  var logoElement = '<div class="wp-block-site-logo"><a href="'+baseUrl+'" class="custom-logo-link" rel="home" aria-current="page"><img width="280" height="59" src="'+baseUrl+'/wp-content/uploads/2023/11/ayala-logo.png" class="custom-logo" alt="ayala-logo" decoding="async"></a></div>';
+
+  // Append the elements to the specified element with ID #modal-2-content
+  $('#modal-2-content').append(logoElement);
+
+
+
+  
+});
 
