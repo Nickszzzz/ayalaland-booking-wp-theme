@@ -148,7 +148,7 @@ function format_product_data($product) {
 
     $formatted_product = array(
         'id' => $product->ID,
-        'name' => $product->post_title,
+        'name' => html_entity_decode($product->post_title, ENT_QUOTES, 'UTF-8'),
         'content' => wp_strip_all_tags($product->post_content), // Convert post content into raw text
         'link' => '/meeting-rooms/'.$product->ID, // Get the permalink for the product
         'image' => get_the_post_thumbnail_url($product->ID), // Get the URL of the featured image (thumbnail)
@@ -266,13 +266,13 @@ function get_rooms_data(WP_REST_Request $request) {
             $booked_dates = [];
 
             foreach($dates as $date) {
-                $booked_dates[] = format_booked_slots_custom(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
+                $booked_dates[] = format_booked_slots_by_id(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
             }
 
             // Extract data for each product/room
             $room = array(
                 'ID' => $id,
-                'title' => get_the_title(),
+                'title' => html_entity_decode(get_the_title(), ENT_QUOTES, 'UTF-8'),
                 'description' => get_the_excerpt(),
                 'hourly_rate' => get_field('rates_hourly_rate', $id),
                 'daily_rate' => get_field('rates_daily_rate', $id),
@@ -291,113 +291,142 @@ function get_rooms_data(WP_REST_Request $request) {
     }
 }
 
-function format_booked_slots_custom($operating_hours_start, $operating_hours_end, $id, $date) {
-
-    $booked_slots = get_order_booked_slots_custom($id, $date);
-
-    // Convert time strings to DateTime objects
-    $start_time = DateTime::createFromFormat('H:i A', $operating_hours_start);
-    $end_time = DateTime::createFromFormat('H:i A', $operating_hours_end);
-
-    // Get the current date
-    $date = new DateTime($date);
-    $current_date = $date->format('m/d/Y');
-
-
-    // Initialize an array to hold the formatted slots
-    $formatted_slots = array();
-
-    // Add the slot before the first booked slot if any
-    if (!empty($booked_slots)) {
-
-        $first_booked_start = DateTime::createFromFormat('H:i A', $booked_slots[0][0]);
-
-        if ($first_booked_start > $start_time) {
-            $formatted_slots[] = $current_date . ' at ' . $start_time->format('h:i A') . ' - ' . $first_booked_start->format('h:i A');
-        }
-
-
-        // Loop through booked slots and add available slots between them
-        for ($i = 0; $i < count($booked_slots) - 1; $i++) {
-            $booked_end = DateTime::createFromFormat('H:i A', $booked_slots[$i][1]);
-            $next_booked_start = DateTime::createFromFormat('H:i A', $booked_slots[$i + 1][0]);
-
-            if ($booked_end < $next_booked_start) {
-                $formatted_slots[] = $current_date . ' at ' . $booked_end->format('h:i A') . ' - ' . $next_booked_start->format('h:i A');
-            }
-        }
-
-
-
-        // Add the slot after the last booked slot if any
-        $last_booked_end = DateTime::createFromFormat('H:i A', end($booked_slots)[1]);
-
-
-        if ($last_booked_end < $end_time) {
-            $formatted_slots[] = $current_date . ' at ' . $last_booked_end->format('h:i A') . ' - ' . $end_time->format('h:i A');
-        }
-
-
-    } else {
-        // If no booked slots, return the full operating hours as a single available slot
-        $formatted_slots[] = $current_date . ' at ' . $start_time->format('h:i A') . ' - ' . $end_time->format('h:i A');
-    }
-
-    return $formatted_slots;
-}
-
 function get_order_booked_slots_custom($product_id, $date) {
     global $wpdb;
+	
     $current_date = date('D M d Y H:i:s T', strtotime($date));
 
-	
-    // Prepare and execute the SQL query to retrieve booked slots
+    // $current_date = isset($data['current_date']) ? $data['current_date'] : date('D M d Y H:i:s T');
+
+    // Prepare and execute the SQL query
     $query = $wpdb->prepare("
-        SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
-        FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
-        INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
-        LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
-        LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
-        WHERE lookup.product_id = %d
-        AND orders.status != 'trash'
-    ", $product_id);
+    SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
+    FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
+    INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
+    LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
+    LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
+    WHERE lookup.product_id = %d
+    AND orders.status != 'trash'
+", $product_id);
     $orders = $wpdb->get_results($query);
 
 
-    $booked_slots = array();
+    $start_time_str = get_field('operating_hours_start', $product_id);
+    $end_time_str = get_field('operating_hours_end', $product_id);
+    
+    // return array(
+    //     $orders[0],
+    //     "start" => $hours_start,
+    //     "end" => $hours_end,
+    // );
+
     $disabled_dates = array();
-    // Convert the original date string to a Unix timestamp using strtotime
-    $timestamp = strtotime($current_date);
+	// Convert the original date string to a Unix timestamp using strtotime
+	$timestamp = strtotime($current_date);
+    $booked_slots = array();
 
-    // Format the timestamp into the desired format
-    $formattedDate = date('Y-m-d', $timestamp);
 
+	// Format the timestamp into the desired format
+	$formattedDate = date('Y-m-d', $timestamp);
 
     foreach ($orders as $order) {
-        $checkin_time_24hr = date('H:i A', strtotime($order->checkin_value));
-        $checkout_time_24hr = date('H:i A', strtotime($order->checkout_value));
+        
         $order_date = date('Y-m-d', strtotime($order->checkin_value));
         
-        if ($order_date == $formattedDate) {
-            $booked_slots[] = [
-                "start" => $checkin_time_24hr, 
-                "end" => $checkout_time_24hr,
-            ];
+        if(!isValidDateFormat($order->checkin_value) && !isValidDateFormat($order->checkout_value)) continue;
+
+        // Define input data
+        $checkin_value = new DateTime($order->checkin_value);
+        $checkout_value = new DateTime($order->checkout_value);
+
+        
+
+        // Convert start and end times to DateTime objects
+        $start_time = DateTime::createFromFormat('h:i A', $start_time_str);
+        $end_time = DateTime::createFromFormat('h:i A', $end_time_str);
+
+        // Iterate through each day in the interval
+        $current_date = clone $checkin_value;
+        $current_date->setTime(0, 0, 0); // Set to midnight to start the day comparison
+
+        $interval_end = clone $checkout_value;
+        $interval_end->setTime(0, 0, 0); // Set to midnight to end the day comparison
+
+        while ($current_date <= $interval_end) {
+            // Calculate the working hours for the current date
+            if ($current_date == $checkin_value->format('Y-m-d')) {
+                $working_hours_start = $checkin_value;
+            } else {
+                $working_hours_start = clone $current_date;
+                $working_hours_start->setTime((int)$start_time->format('H'), (int)$start_time->format('i'));
+            }
+
+            if ($current_date == $checkout_value->format('Y-m-d')) {
+                $working_hours_end = $checkout_value;
+            } else {
+                $working_hours_end = clone $current_date;
+                $working_hours_end->setTime((int)$end_time->format('H'), (int)$end_time->format('i'));
+            }
+
+            // Ensure the working hours are within the checkin and checkout bounds
+            if ($working_hours_start < $checkin_value) {
+                $working_hours_start = $checkin_value;
+            }
+            if ($working_hours_end > $checkout_value) {
+                $working_hours_end = $checkout_value;
+            }
+
+            // Format the working hours for output
+            $working_hours_start_formatted = $working_hours_start->format('h:i A');
+            $working_hours_end_formatted = $working_hours_end->format('h:i A');
+
+            // Output the result for the current date
+            // echo $working_hours_start_formatted . " to " . $working_hours_end_formatted . "<br>";
+            $checkin_time_24hr = date('H:i', strtotime($working_hours_start_formatted));
+            $checkout_time_24hr = date('H:i', strtotime($working_hours_end_formatted));
+
+            if($formattedDate === $current_date->format('Y-m-d')) {
+                $booked_slots[] = [
+                    "start" => $working_hours_start_formatted, 
+                    "end" => $working_hours_end_formatted,
+                    "date" => $current_date->format('Y-m-d'),
+                    "product_id" => $product_id,
+                    "product_id" => $product_id,
+                ];
+            }
+            
+
+            // Move to the next day
+            $current_date->modify('+1 day');
         }
     }
 
-
-
-    // Convert the booked slots into the desired format
-    $formatted_slots = array();
-    foreach ($booked_slots as $slot) {
-        $formatted_slots[] = array($slot['start'], $slot['end'] );
-    }
-
-    return $formatted_slots;
+        // Convert the booked slots into the desired format
+    // $formatted_slots = array();
+    // foreach ($booked_slots as $slot) {
+    //     $formatted_slots[] = array($slot['start'], $slot['end'] );
+    // }
+    
+    return $booked_slots;
 }
 
+function isValidDateFormat($date) {
+    // Define the regular expression pattern
+    $pattern = '/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/';
 
+    // Check if the date matches the pattern
+    if (preg_match($pattern, $date)) {
+        // Validate the date components
+        $dateTime = DateTime::createFromFormat('Y-m-d H:i:s', $date);
+        if ($dateTime && $dateTime->format('Y-m-d H:i:s') === $date) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return false;
+    }
+}
 
 // Hook to initialize the REST API endpoint
 add_action('rest_api_init', 'register_suggested_rooms_endpoint');
@@ -479,13 +508,13 @@ function get_suggested_rooms(WP_REST_Request $request) {
             $booked_dates = [];
 
             foreach($dates as $date) {
-                $booked_dates[] = format_booked_slots_custom(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
+                $booked_dates[] = format_booked_slots_by_id(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
             }
 
             // Extract data for each product/room
             $room = array(
                 'ID' => $id,
-                'title' => get_the_title(),
+                'title' => html_entity_decode(get_the_title(), ENT_QUOTES, 'UTF-8'),
                 'description' => get_the_excerpt(),
                 'hourly_rate' => get_field('rates_hourly_rate', $id),
                 'daily_rate' => get_field('rates_daily_rate', $id),
@@ -547,7 +576,7 @@ function get_meeting_rooms_by_location($request) {
 
             $products[] = array(
                 'ID' => $product_id,
-                'title' => get_the_title(),
+                'title' => html_entity_decode(get_the_title(), ENT_QUOTES, 'UTF-8'),
                 'description' => get_the_excerpt(),
                 'hourly_rate' => $hourly_rate,
                 'daily_rate' => $daily_rate,
@@ -599,7 +628,7 @@ function get_room_header($request) {
 
     // Prepare the response data
     $response_data = array(
-        'title' => $title,
+        'title' => html_entity_decode($title, ENT_QUOTES, 'UTF-8'),
         'featured_image' => $featured_image,
         'room_location' => $room_location ? $room_location->post_title : null,
         'amenity' => $amenity,
@@ -884,9 +913,14 @@ function sso_login_or_create_user($request) {
             false
         );
         
+        // New user created, set initial last login time
+        $last_login_time = current_time('mysql');
+        update_user_meta($user_id, 'last_login_time', $last_login_time);
     }
 
     update_user_meta($user->ID, 'sso_login', true);
+    $last_login_time = current_time('mysql');
+    update_user_meta($user->ID, 'last_login_time', $last_login_time);
 
     return rest_ensure_response([
         'name' => $user->display_name,
@@ -894,6 +928,7 @@ function sso_login_or_create_user($request) {
         'sub' => (string) $user->ID,
         'id' => $user->ID,
         'role' => $user->roles[0], // Default role
+        'last_login_time' => $last_login_time,
     ]);
 }
 
@@ -1181,7 +1216,7 @@ function get_products_by_author( $data ) {
             // Add product data to formatted array
             $formatted_products[] = array(
                 'id' => $product_id,
-                'room_name' => $product_name,
+                'room_name' => html_entity_decode($product_name, ENT_QUOTES, 'UTF-8'),
                 'thumbnail' => $product_thumbnail,
             );
         }
@@ -2843,15 +2878,12 @@ function get_rooms_data_availability(WP_REST_Request $request) {
     $id = sanitize_text_field($request->get_param('id'));
     $date = sanitize_text_field($request->get_param('date'));
 
-    // return $date;
-    // return format_booked_slots_custom(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);;
-
     return format_booked_slots_by_id(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
 }
 
 function format_booked_slots_by_id($operating_hours_start, $operating_hours_end, $id, $date) {
 
-    $booked_slots = get_order_booked_slots_custom($id);
+    $booked_slots = get_order_booked_slots_custom($id, $date);
 
     // Convert time strings to DateTime objects
     $start_time = DateTime::createFromFormat('h:i A', $operating_hours_start);
@@ -2867,27 +2899,31 @@ function format_booked_slots_by_id($operating_hours_start, $operating_hours_end,
 
     // Add the slot before the first booked slot if any
     if (!empty($booked_slots)) {
-        $first_booked_start = DateTime::createFromFormat('h:i A', $booked_slots[0][0]);
+
+        $first_booked_start = DateTime::createFromFormat('h:i A', $booked_slots[0]['start']);
 
         if ($first_booked_start > $start_time) {
-            $formatted_slots[] = $current_date . ' at ' . $start_time->format('h:i A') . ' - ' . $first_booked_start->format('h:i A');
+            $formatted_slots[] = $current_date . ' at ' . $start_time->format('h:i A') . ' - ' . $current_date . ' at ' . $first_booked_start->format('h:i A');
         }
+
 
         // Loop through booked slots and add available slots between them
         for ($i = 0; $i < count($booked_slots) - 1; $i++) {
-            $booked_end = DateTime::createFromFormat('h:i A', $booked_slots[$i][1]);
-            $next_booked_start = DateTime::createFromFormat('h:i A', $booked_slots[$i + 1][0]);
+            $booked_end = DateTime::createFromFormat('h:i A', $booked_slots[$i]["end"]);
+            $next_booked_start = DateTime::createFromFormat('h:i A', $booked_slots[$i + 1]["start"]);
 
             if ($booked_end < $next_booked_start) {
-                $formatted_slots[] = $current_date . ' at ' . $booked_end->format('h:i A') . ' - ' . $next_booked_start->format('h:i A');
+                $formatted_slots[] = $current_date . ' at ' . $booked_end->format('h:i A') . ' - ' . $current_date . ' at ' . $next_booked_start->format('h:i A');
             }
         }
 
         // Add the slot after the last booked slot if any
-        $last_booked_end = DateTime::createFromFormat('h:i A', end($booked_slots)[1]);
+        $last_booked_end = DateTime::createFromFormat('h:i A', end($booked_slots)["end"]);
+
         if ($last_booked_end < $end_time) {
-            $formatted_slots[] = $current_date . ' at ' . $last_booked_end->format('h:i A') . ' - ' . $end_time->format('h:i A');
+            $formatted_slots[] = $current_date . ' at ' . $last_booked_end->format('h:i A') . ' - ' . $current_date . ' at ' . $end_time->format('h:i A');
         }
+
     } else {
         // If no booked slots, return the full operating hours as a single available slot
         $formatted_slots[] = $current_date . ' at ' . $start_time->format('h:i A') . ' - ' . $current_date . ' at ' . $end_time->format('h:i A');
@@ -3667,7 +3703,8 @@ function custom_login_api_callback( $request ) {
     }
 
     update_user_meta($user->ID, 'sso_login', false);
-
+    $last_login_time = current_time('mysql');
+    update_user_meta($user->ID, 'last_login_time', $last_login_time);
 
     // Extract user data
     return array(
@@ -3676,6 +3713,7 @@ function custom_login_api_callback( $request ) {
         'id' => $user->ID,
         'manual_login' => true,
         'role' => $user->roles[0], // Assuming user has only one role
+        'last_login_time' => $last_login_time,
     );
 
 }
@@ -3950,6 +3988,8 @@ function sso_login_create_user_microsoft($request) {
     // Set 'password_set' meta to false for new users if needed
     update_user_meta($user_id, 'password_set', false);
     update_user_meta($user_id, 'sso_login', true);
+    $last_login_time = current_time('mysql');
+    update_user_meta($user_id, 'last_login_time', $last_login_time);
 
     // Return response
     return rest_ensure_response([
@@ -3959,6 +3999,7 @@ function sso_login_create_user_microsoft($request) {
         'sub' => (string) $user->ID,
         'id' => $user->ID,
         'role' => $role, // Return the assigned role
+        'last_login_time' => $last_login_time,
     ]);
 }
 

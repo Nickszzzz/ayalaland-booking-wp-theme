@@ -760,3 +760,24 @@ function remove_built_in_roles() {
     }
 }
 
+function add_last_login_time_field($user) {
+    update_user_meta($user->ID, 'last_login_time', current_time('mysql'));
+}
+add_action('wp_login', 'add_last_login_time_field');
+
+function add_custom_user_meta_fields($user) {
+    ?>
+    <h3>Extra profile information</h3>
+    <table class="form-table">
+        <tr>
+            <th><label for="last_login_time">Last Login Time</label></th>
+            <td>
+                <input type="text" name="last_login_time" id="last_login_time" value="<?php echo esc_attr(get_the_author_meta('last_login_time', $user->ID)); ?>" class="regular-text" readonly/><br />
+                <span class="description">This is the last login time of the user.</span>
+            </td>
+        </tr>
+    </table>
+    <?php
+}
+add_action('show_user_profile', 'add_custom_user_meta_fields');
+add_action('edit_user_profile', 'add_custom_user_meta_fields');
