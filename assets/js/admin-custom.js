@@ -48,4 +48,6 @@ jQuery(document).ready(function ($) {
     });
 
 
+    $('#acf-group_667d112924318 input').prop('disabled', true);
+
 });

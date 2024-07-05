@@ -3871,66 +3871,51 @@ function custom_validate_reset_key_handler( $request ) {
 }
 
 
-function handle_create_count_viewer_post( WP_REST_Request $request ) {
+function handle_increment_room_views( WP_REST_Request $request ) {
     $room_id = $request->get_param( 'room_id' );
-    $counter = get_field('count', $room_id);
+    $count = get_field("count", $room_id);
   
-    return $counter;
-
-    update_field('meeting_room_id', $room_id, $post_id);
-
-    if (is_wp_error($post_id)) {
-        return new WP_REST_Response(array('message' => 'Error creating post'), 500);
+    if(is_null($count)) {
+        update_field("count", 1, $room_id);
+        return get_field("count", $room_id);
     }
-
-    return new WP_REST_Response(array('post_id' => $post_id), 200);
+    else {
+        update_field("count", $count+1, $room_id);
+        return get_field("count", $room_id);
+    }
 }
 
-function register_create_count_viewer_endpoint() {
-    register_rest_route('v2', '/create-count-viewer/(?P<room_id>\d+)', array(
+function register_increment_count_viewer_endpoint() {
+    register_rest_route('v2', '/increment-count-viewer/(?P<room_id>\d+)', array(
         'methods'  => 'POST',
-        'callback' => 'handle_create_count_viewer_post',
+        'callback' => 'handle_increment_room_views',
        
     ));
 }
-add_action('rest_api_init', 'register_create_count_viewer_endpoint');
+add_action('rest_api_init', 'register_increment_count_viewer_endpoint');
 
+function handle_decrement_room_views( WP_REST_Request $request ) {
+    $room_id = $request->get_param( 'room_id' );
+    $count = get_field("count", $room_id);
 
-function handle_count_posts_by_room_id( WP_REST_Request $request ) {
-    $room_id = $request->get_param('room_id');
-
-
-    if ( !$room_id ) {
-        return new WP_REST_Response(array('message' => 'room_id parameter is required'), 400);
+    if(is_null($count) || $count <= 1) {
+        update_field("count", 0, $room_id);
+        return get_field("count", $room_id);
     }
-
-    $args = array(
-        'post_type' => 'views-counter',
-        'post_status' => 'publish',
-        'meta_query' => array(
-            array(
-                'key' => 'meeting_room_id',
-                'value' => $room_id,
-                'compare' => '='
-            )
-        )
-    );
-
-    $query = new WP_Query($args);
-
-    $count = $query->found_posts;
-
-    return new WP_REST_Response(array('room_id' => $room_id, 'count' => $count), 200);
+    else {
+        update_field("count", $count-1, $room_id);
+        return get_field("count", $room_id);
+    }
 }
 
-function register_count_posts_by_room_id_endpoint() {
-    register_rest_route('v2', '/count-by-room-id/(?P<room_id>\d+)', array(
-        'methods'  => 'GET',
-        'callback' => 'handle_count_posts_by_room_id',
-        'permission_callback' => '__return_true',
+function register_decrement_count_viewer_endpoint() {
+    register_rest_route('v2', '/decrement-count-viewer/(?P<room_id>\d+)', array(
+        'methods'  => 'POST',
+        'callback' => 'handle_decrement_room_views',
     ));
 }
-add_action('rest_api_init', 'register_count_posts_by_room_id_endpoint');
+add_action('rest_api_init', 'register_decrement_count_viewer_endpoint');
+
 
 
 add_action('rest_api_init', function () {
