@@ -1029,7 +1029,16 @@ function update_user_information($request) {
         $userdata['last_name'] = sanitize_text_field($updated_data['lastname']);
     }
     if (isset($updated_data['email'])) {
-        $userdata['user_email'] = sanitize_email($updated_data['email']);
+        $new_email = sanitize_email($updated_data['email']);
+        
+        // Check if the new email is already in use
+        $user_by_email = get_user_by('email', $new_email);
+        if ($user_by_email && $user_by_email->ID !== $user_id) {
+            // Email is already used by another user
+            return new WP_Error('email_already_exists', __('Email is already in use by another user.'), array('status' => 400));
+        }
+        
+        $userdata['user_email'] = $new_email;
     }
     if (isset($updated_data['display_name'])) {
         $userdata['display_name'] = sanitize_text_field($updated_data['display_name']);
