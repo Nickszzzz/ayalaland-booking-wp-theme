@@ -715,7 +715,7 @@ function get_room_details($request) {
 
     // Construct the response data
     $response_data = array(
-        'title' => $title,
+        'title' => html_entity_decode($title),
         'content' => $content,
         'featured_image' => $featured_image,
         'room_attributes' => array(
@@ -834,7 +834,7 @@ function custom_booking_details_callback(WP_REST_Request $request) {
     // Construct the response data
     $data = array(
         'id' => $room_id,
-        'room_name' => $room_name,
+        'room_name' => html_entity_decode($room_name),
         'max_seats' => $max_seats,
         'cta_map_link' => $cta_map_link,
         'hourly_rate' => $hourly_rate,
