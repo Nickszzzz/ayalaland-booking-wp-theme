@@ -3997,6 +3997,34 @@ function sso_login_create_user_microsoft($request) {
     ]);
 }
 
+add_action('rest_api_init', function () {
+    register_rest_route('v2', '/validate-booking', [
+        'methods' => 'POST',
+        'callback' => 'validate_booking_times_function',
+        'permission_callback' => '__return_true', // Properly secure this with authorization
+    ]);
+});
+
+function validate_booking_times_function($request) {
+    $product_id = sanitize_text_field($request->get_param("product_id")); // Sanitize firstname
+    $checkin = sanitize_text_field($request->get_param("checkin")); // Sanitize firstname
+    $checkout = sanitize_text_field($request->get_param("checkout")); // Sanitize lastname
+
+    // Convert strings to DateTime objects
+    $checkinDateTime = new DateTime($checkin);
+    $checkoutDateTime = new DateTime($checkout);
+
+    // Format dates to 'Y-m-d H:i:s'
+    $formattedCheckin = $checkinDateTime->format('Y-m-d H:i:s');
+    $formattedCheckout = $checkoutDateTime->format('Y-m-d H:i:s');
+
+    $validate_booking_times = validate_booking_times($checkin, $checkout, $product_id);
+    if($validate_booking_times["is_booked"]) {
+        return new WP_Error('booking_conflict', 'The '.$validate_booking_times["product_name"].' is already booked for the selected date and time.');
+    }
+    return true;
+
+}
 
 function validate_booking_times($checkin, $checkout, $product_id) {
     global $wpdb;
@@ -4071,3 +4099,6 @@ function validate_booking_times_for_multiple_rooms($orders_data) {
         "is_booked" => false
     ); // No overlap found
 }
+
+
+

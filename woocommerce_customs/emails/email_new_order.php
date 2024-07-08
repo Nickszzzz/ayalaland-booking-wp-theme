@@ -61,14 +61,13 @@ function bbloomer_status_custom_notification_ayala_new_order( $order_id, $order 
             <p>We would like to inform you that a meeting room booking request has been submitted. The details are as follows:</p>
 
             <ul>
-                <li><strong>Meeting Title:</strong> ".$order_name."</li>
+                <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
                 <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
-                 <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                <li><strong>Meeting Room:</strong> ".$product_name."</li>
+                <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                 <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
-                <li><strong>Number of Attendees:</strong> ".$number_of_seats."</li>
+                <li><strong>Add-ons:</strong> ".$ad_ons."</li>
             </ul>
 
 
@@ -86,14 +85,13 @@ function bbloomer_status_custom_notification_ayala_new_order( $order_id, $order 
             <p>We would like to inform you that a meeting room booking request has been submitted. The details are as follows:</p>
 
             <ul>
-                <li><strong>Meeting Title:</strong> ".$order_name."</li>
+                <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
                 <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
                 <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                 <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
-                <li><strong>Number of Attendees:</strong> ".$number_of_seats."</li>
+                <li><strong>Add-ons:</strong> ".$ad_ons."</li>
             </ul>
 
 
@@ -112,14 +110,13 @@ function bbloomer_status_custom_notification_ayala_new_order( $order_id, $order 
             <p>We would like to inform you that a meeting room booking request has been submitted. The details are as follows:</p>
 
             <ul>
-                <li><strong>Meeting Title:</strong> ".$order_name."</li>
+                <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
                 <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
-                 <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                <li><strong>Meeting Room:</strong> ".$product_name."</li>
+                <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                 <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
-                <li><strong>Number of Attendees:</strong> ".$number_of_seats."</li>
+                <li><strong>Add-ons:</strong> ".$ad_ons."</li>
             </ul>
 
 

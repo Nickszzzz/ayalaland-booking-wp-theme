@@ -56,14 +56,18 @@ function bbloomer_status_custom_notification_cancel_request( $order_id, $order )
 
     $items = $order->get_items();
     $product_name = '';
+    $product_id = '';
     // Check if there are items in the order
     if ($items) {
         foreach ($items as $item_id => $item) {
             // Get the product name for each item
             $product_name = $item->get_name();
+            $product_id = $item->get_product_id();
         }
     
     }
+    $location_id = get_field('room_description_location', $product_id)->ID;
+
     $payment_email = 'ortiz.cathie@ayalalandoffices.com.ph';
     if(strtolower($post_tags[0]->name) !== 'makati') {
         $payment_email = $author_email;
@@ -79,14 +83,14 @@ function bbloomer_status_custom_notification_cancel_request( $order_id, $order )
                 <p>A meeting room cancellation for a booking on ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been requested by a customer. Requesting for your decision on the cancellation request.</p>
 
                 <p><strong>Booking Details </strong></p>
-                <ul>
-                    <li><strong>Meeting Title:</strong>  ".$order_name."</li>
-                    <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
-                        <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                    <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                    <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                 <ul>
+                    <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
+                    <li><strong>Location:</strong> ".html_entity_decode(get_the_title($location_id), ENT_QUOTES, 'UTF-8')."</li>
+                    <li><strong>Meeting Room:</strong> ".$product_name."</li>
+                    <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                    <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                    <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
+                    <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
 
                 <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
@@ -106,14 +110,14 @@ function bbloomer_status_custom_notification_cancel_request( $order_id, $order )
                 <p>A meeting room cancellation for a booking on ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been requested by a customer. Requesting for your decision on the cancellation request.</p>
 
                 <p><strong>Booking Details </strong></p>
-                <ul>
-                    <li><strong>Meeting Title:</strong>  ".$order_name."</li>
-                    <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
-                        <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                    <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                    <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                 <ul>
+                    <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
+                    <li><strong>Location:</strong> ".html_entity_decode(get_the_title($location_id), ENT_QUOTES, 'UTF-8')."</li>
+                    <li><strong>Meeting Room:</strong> ".$product_name."</li>
+                    <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                    <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                    <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
+                    <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
                 
                 <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
@@ -134,14 +138,14 @@ function bbloomer_status_custom_notification_cancel_request( $order_id, $order )
                 <p>Your cancellation request for the meeting room booking on ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been forwarded to the center admin for approval. Kindly await the confirmation in a few days..</p>
 
                 <p><strong>Booking Details </strong></p>
-                <ul>
-                    <li><strong>Meeting Title:</strong>  ".$order_name."</li>
-                    <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
+                 <ul>
+                    <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
+                    <li><strong>Location:</strong> ".html_entity_decode(get_the_title($location_id), ENT_QUOTES, 'UTF-8')."</li>
                     <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                    <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                    <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                    <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                    <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                    <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
+                    <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
                 
                 <p>Please feel free to reach out if you have any additional requirements or questions.</p>

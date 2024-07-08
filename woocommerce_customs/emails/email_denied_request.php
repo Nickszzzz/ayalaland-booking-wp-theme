@@ -49,14 +49,18 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
 
     $items = $order->get_items();
     $product_name = '';
+    $product_id = '';
     // Check if there are items in the order
     if ($items) {
         foreach ($items as $item_id => $item) {
             // Get the product name for each item
             $product_name = $item->get_name();
+            $product_id = $item->get_product_id();
         }
     
     }
+    $location_id = get_field('room_description_location', $product_id)->ID;
+
     $payment_email = 'ortiz.cathie@ayalalandoffices.com.ph';
     if(strtolower($post_tags[0]->name) !== 'makati') {
         $payment_email = $author_email;
@@ -74,13 +78,13 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
                 <p><strong>Booking Details </strong></p>
 
                 <ul>
-                    <li><strong>Meeting Title:</strong>  ".$order_name."</li>
-                    <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
-                        <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                    <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                    <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                    <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
+                    <li><strong>Location:</strong> ".html_entity_decode(get_the_title($location_id), ENT_QUOTES, 'UTF-8')."</li>
+                    <li><strong>Meeting Room:</strong> ".$product_name."</li>
+                    <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                    <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                    <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
+                    <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
 
                 <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
@@ -100,14 +104,14 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
                 <p>A cancellation request for the meeting room booking on ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been declined by the center admin.</p>
 
                 <p><strong>Booking Details </strong></p>
-                <ul>
-                    <li><strong>Meeting Title:</strong>  ".$order_name."</li>
-                    <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
-                        <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                    <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                    <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                 <ul>
+                    <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
+                    <li><strong>Location:</strong> ".html_entity_decode(get_the_title($location_id), ENT_QUOTES, 'UTF-8')."</li>
+                    <li><strong>Meeting Room:</strong> ".$product_name."</li>
+                    <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                    <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                    <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
+                    <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
                 
                 <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
@@ -128,14 +132,14 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
                 <p>We regret to inform you that your cancellation request for the meeting room booking on ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been denied by the center admin.</p>
 
                 <p><strong>Booking Details </strong></p>
-                <ul>
-                    <li><strong>Meeting Title:</strong>  ".$order_name."</li>
-                    <li><strong>Location:</strong> ".$post_tags[0]->name."</li>
+                 <ul>
+                    <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
+                    <li><strong>Location:</strong> ".html_entity_decode(get_the_title($location_id), ENT_QUOTES, 'UTF-8')."</li>
                     <li><strong>Meeting Room:</strong> ".$product_name."</li>
-                    <li><strong>Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
-                    <li><strong>Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
+                    <li><strong>Booked Date:</strong> ".getDateFromDateTimeString($checkin)."</li>
+                    <li><strong>Booked Time:</strong> ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)."</li>
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
-                    <li><strong>Add-Ons:</strong> ".$ad_ons."</li>
+                    <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
                 
                 <p>We understand that this may cause inconvenience, and we apologize for any disruption to your plans.</p>
