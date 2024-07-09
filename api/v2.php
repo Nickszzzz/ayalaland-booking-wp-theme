@@ -917,7 +917,6 @@ function sso_login_or_create_user($request) {
         $last_login_time = current_time('mysql');
         update_user_meta($user_id, 'last_login_time', $last_login_time);
     }
-
     update_user_meta($user->ID, 'sso_login', true);
     $last_login_time = current_time('mysql');
     update_user_meta($user->ID, 'last_login_time', $last_login_time);
@@ -3272,38 +3271,95 @@ add_action('rest_api_init', 'register_notifications_route');
 function get_notifications_by_user_id(WP_REST_Request $request) {
     // Get the user_id parameter from the request
     $user_id = $request->get_param('id');
+    $user_info = get_userdata($user_id);
 
-    // Query for notifications
-    $args = array(
-        'post_type' => 'notifications',
-        'meta_key' => 'user_id',
-        'meta_value' => $user_id,
-        'posts_per_page' => -1,
-        'post_status' => 'publish',
-    );
+    if ($user_info) {
+        $user_roles = $user_info->roles;
+        if (in_array('shop_manager', $user_roles)) {
+            $location_id = get_field('location', 'user_' . $user_id);
 
-    $query = new WP_Query($args);
+            // Query users with the specified location_id
+            $user_ids = get_users(array(
+                'meta_key'   => 'location',
+                'meta_value' => $location_id,
+                'fields'     => 'ID', // Retrieve only the user IDs
+            ));
 
-    if (!$query->have_posts()) {
-        return new WP_Error('no_notifications', 'No notifications found for this user', array('status' => 404));
+            $query_args = array(
+                'post_type'  => 'notifications',
+                'meta_query' => array(
+                    array(
+                        'key'     => 'user_id',
+                        'value'   => $user_ids,
+                        'compare' => 'IN',
+                    ),
+                ),
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+                'orderby'           => 'date',
+                'order'             => 'DESC', // Use 'ASC' for ascending order
+            );
+        
+            $query = new WP_Query($query_args);
+            
+            if (!$query->have_posts()) {
+                return new WP_Error('no_notifications', 'No notifications found for this user', array('status' => 404));
+            }
+
+            $notifications = array();
+
+            while ($query->have_posts()) {
+                $query->the_post();
+                $notifications[] = array(
+                    'id' => get_the_id(),
+                    'title' => get_the_title(),
+                    'description' => get_the_content(),
+                    'date' => get_the_date('Y-m-d H:i:s'),
+                    'status' => get_field('status') ? 'read' : 'unread', // Convert boolean to 'read'/'unread'
+                );
+            }
+
+            wp_reset_postdata();
+
+            return new WP_REST_Response($notifications, 200);
+
+        } else {
+           // Query for notifications
+            $args = array(
+                'post_type'         => 'notifications',
+                'meta_key'          => 'user_id',
+                'meta_value'        => $user_id,
+                'posts_per_page'    => -1,
+                'post_status'       => 'publish',
+                'orderby'           => 'date',
+                'order'             => 'DESC', // Use 'ASC' for ascending order
+            );
+
+            $query = new WP_Query($args);
+
+            if (!$query->have_posts()) {
+                return new WP_Error('no_notifications', 'No notifications found for this user', array('status' => 404));
+            }
+
+            $notifications = array();
+
+            while ($query->have_posts()) {
+                $query->the_post();
+                $notifications[] = array(
+                    'id' => get_the_id(),
+                    'title' => get_the_title(),
+                    'description' => get_the_content(),
+                    'date' => get_the_date('Y-m-d H:i:s'),
+                    'status' => get_field('status') ? 'read' : 'unread', // Convert boolean to 'read'/'unread'
+                );
+            }
+
+            wp_reset_postdata();
+
+            return new WP_REST_Response($notifications, 200);
+        }
     }
-
-    $notifications = array();
-
-    while ($query->have_posts()) {
-        $query->the_post();
-        $notifications[] = array(
-            'id' => get_the_id(),
-            'title' => get_the_title(),
-            'description' => get_the_content(),
-            'date' => get_the_date('Y-m-d H:i:s'),
-            'status' => get_field('status') ? 'read' : 'unread', // Convert boolean to 'read'/'unread'
-        );
-    }
-
-    wp_reset_postdata();
-
-    return new WP_REST_Response($notifications, 200);
+    
 }
 
 
@@ -4111,6 +4167,7 @@ function sso_login_create_user_microsoft($request) {
     $user = get_user_by('email', $email);
 
     if ($user) {
+        update_user_meta($user_id, 'sso_login', true);
         return new WP_Error('user_exists', 'User with this email already exists', ['status' => 400]);
     }
 
