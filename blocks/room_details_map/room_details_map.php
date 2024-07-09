@@ -8,7 +8,7 @@
 
     <div class="gf_browser_chrome gform_wrapper gravity-theme gform-theme--no-framework book__now-form_wrapper"
         id="gform_wrapper_2">
-        <form method="get" enctype="multipart/form-data" id="gform_2" class="book__now-form" action="/ayala/check-out/"
+        <form method="get" enctype="multipart/form-data" id="gform_2" class="book__now-form" action="/check-out/"
             data-formid="2" novalidate="">
             <input type="hidden" name="formtoken" value="L1dsrqjQNca4Bado4M17I1iWPqZOLk69swvTxWkjN6tknx2C00JgJudIgb68Ul65c1eeO0Wmzoc6h7EdX2mdP">
             <input type="hidden" name="add-to-cart" value="<?php echo $id; ?>">
@@ -295,14 +295,15 @@
 				// Format the date string
 				const formattedDate = `${month} ${day}, ${year}`;
 
+                $("#demo-calendar").addClass('loading');
                 $.ajax({
-                    url: baseURL+'/ayala/wp-json/custom/v1/disabled-dates/?id=<?php echo $id; ?>&current_date='+formattedDate,
+                    url: baseURL+'/wp-json/custom/v1/disabled-dates/?id=<?php echo $id; ?>&current_date='+formattedDate,
                     type: 'GET',
                     dataType: 'json',
                     success: function (data) {
                         // Handle the response data
                         showDatePicker(event.date, data).open();
-
+                        $("#demo-calendar").removeClass('loading');
                     },
                     error: function (error) {
                         // Handle errors
@@ -325,10 +326,11 @@
         
 
         $.ajax({
-            url: baseURL+'/ayala/wp-json/custom/v1/completed-orders/?product_id=<?php echo $id; ?>',
+            url: baseURL+'/wp-json/custom/v1/completed-orders/?product_id=<?php echo $id; ?>',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
+                $("#demo-calendar-skeleton").hide();
                 showCalendar(data);
 
             },

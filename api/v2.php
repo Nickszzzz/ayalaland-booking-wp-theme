@@ -1203,12 +1203,29 @@ add_action( 'rest_api_init', 'custom_get_products_by_author_endpoint' );
 function get_products_by_author( $data ) {
     $author_id = $data['author_id'];
 
+    $location_id = get_field('location', 'user_' . $author_id);
+
+
     // Query products by author
+    // $args = array(
+    //     'post_type' => 'product',
+    //     'author' => $author_id,
+    //     'posts_per_page' => -1, // Retrieve all products by the author
+    // );
+
     $args = array(
         'post_type' => 'product',
-        'author' => $author_id,
+        'meta_query' => array(
+            array(
+                'key' => 'room_description_location', // ACF field name
+                'value' => $location_id,
+                'compare' => 'LIKE' // Use LIKE to match serialized array format
+            )
+        ),
         'posts_per_page' => -1, // Retrieve all products by the author
     );
+
+
 
     $products = new WP_Query( $args );
 
@@ -1256,7 +1273,8 @@ add_action( 'rest_api_init', 'custom_get_payments_by_author_endpoint' );
 
 function get_payments_by_author( $data ) {
     $author_id = $data['author_id'];
-
+    $location_id = get_field('location', 'user_' . $author_id);
+    
     $orders = wc_get_orders( array(
         'limit' => -1, // Retrieve all orders, can be adjusted
     ) );
@@ -1288,11 +1306,13 @@ function get_payments_by_author( $data ) {
             $order_items = $order->get_items();
             foreach ( $order_items as $item_id => $item ) {
                 $product_id = $item->get_product_id();
-                $product_author_id = get_post_field( 'post_author', $product_id );
+                // $product_author_id = get_post_field( 'post_author', $product_id );
                 // Get the 'initial' custom field value for the author using ACF
                 $author_initial = get_field('initial', 'user_' . $product_author_id);
+                $product_location_id = get_field('room_description_location', $product_id);
 
-                if ( $product_author_id == $author_id ) {
+
+                if ( $product_location_id->ID == $location_id ) {
                     $response[] = array(
                         'transaction_id'       => $order_data['id'],
                         'room_id'     => $product_id,
@@ -1391,6 +1411,136 @@ function get_custom_woocommerce_orders( $data ) {
                 $room_location = get_field('room_description_location', $product_id);
                
                 if ( $product_author_id == $author_id ) {
+                    $product_name = $item->get_name();
+                    $product_price = $item->get_subtotal() / $item->get_quantity(); // Single item price
+                    $booking_date = new DateTime($order_data['date_created']->date( 'Y-m-d H:i:s' ));
+                    $booking_date = $booking_date->format('M-d-Y h:i A');
+    
+                    $order_checkin_date = new DateTime($checkin);
+                    $order_checkin_date = $order_checkin_date->format('M-d-Y h:i A');
+    
+                    $order_checkout_date = new DateTime($checkout);
+                    $order_checkout_date = $order_checkout_date->format('M-d-Y h:i A');
+
+                    $response[] = array(
+                        'id'            => 'ALO'.padNumber($order_data['id'], 6),
+                        'booking_date'    => $booking_date,
+                        'room_name'  => $product_name,
+                        'price'         => $product_price,
+                        'payment_amount'=> $total_payment_amount,
+                        'order_status' => $order_status === 'cancel_request' ? 'Cancellation Request': (($order_status === 'approved_request' || $order_status === 'ayala_cancelled')? 'Canceled' : 'Fully Paid'),
+                        'booked_slot'    => $order_checkin_date.' - ' .$order_checkout_date,
+                        'location'       => $room_location ? $room_location->post_title : null,
+                        // Additional order meta
+                        'first_name' => $billing_first_name,
+                        'booking_type'   => $booking_type,
+                        'last_name' => $billing_last_name,
+                        'company' => $billing_company,
+                        'email' => $billing_email,
+                        'phone' => $billing_phone,
+                        'country' => $billing_country,
+                        'tin_number' => $billing_tin_number,
+                        'number_of_hours' => $number_of_hours,
+                        'booking_notes' => $booking_notes,
+                        'add_ons' => $booking_notes,
+                        'number_of_seats' => $number_of_seats,
+                        'overall_total' => $overall_total,
+                        'author_id' => $order->get_customer_id(),
+                        'product_id' => $product_id,
+                        'reason' => $reason,
+                        'cancel_reason' => $cancel_reason,
+                        'payment_method' => $payment_method,
+                        'vat' => $vat,
+                        'total_hours'    => $total_hours,
+                    );
+                }
+            }
+        }
+    }
+
+    if ( empty( $response ) ) {
+        return new WP_REST_Response( array( 'message' => 'No orders found for this author' ), 404 );
+    }
+
+    return new WP_REST_Response( $response, 200 );
+}
+
+// Register the custom REST API endpoint
+add_action( 'rest_api_init', function () {
+    register_rest_route( 'v2', '/center-admin-orders/(?P<author_id>\d+)', array(
+        'methods'  => 'GET',
+        'callback' => 'get_center_admin_woocommerce_orders',
+    ) );
+} );
+
+function get_center_admin_woocommerce_orders( $data ) {
+    $author_id = $data['author_id'];
+    $location_id = get_field('location', 'user_' . $author_id);
+    
+
+    $orders = wc_get_orders( array(
+        'limit' => -1, // Retrieve all orders, can be adjusted
+    ) );
+
+    if ( empty( $orders ) ) {
+        return new WP_REST_Response( array( 'message' => 'No orders found' ), 404 );
+    }
+
+    $response = array();
+
+    // Custom statuses to filter
+    $custom_statuses = array(
+        'ayala_cancelled',
+        'ayala_approved',
+        'cancel_request',
+        'denied_request',
+        'approved_request',
+    );
+
+    
+
+    foreach ( $orders as $order ) {
+        $order_status = $order->get_status(); // Get the order status
+
+        // Check if the order status is in the custom statuses array
+        if ($order->get_status() !== 'trash' &&  in_array( $order_status, $custom_statuses ) ) {
+            $order_data = $order->get_data();
+            $total_payment_amount = $order->get_total();
+            $checkin = get_field( 'checkin', $order->get_id() ); // Get the checkin custom field
+            $checkout = get_field( 'checkout', $order->get_id() ); // Get the checkout custom field
+            $booking_notes = get_field( 'booking_notes', $order->get_id() ); // Get the checkout custom field
+            $ad_ons = get_field( 'ad_ons', $order->get_id() ); // Get the checkout custom field
+            $billing_country = get_field( '_billing_country', $order->get_id() ); // Get the checkout custom field
+            $billing_tin_number = get_field( 'billing_tin_number', $order->get_id() ); // Get the checkout custom field
+            $number_of_hours = get_field( 'number_of_hours', $order->get_id() ); // Get the checkout custom field
+            $number_of_seats = get_field( 'number_of_seats', $order->get_id() ); // Get the checkout custom field
+            $vat = get_field( 'vat', $order->get_id() ); // Get the checkout custom field
+            $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
+            $reason = get_field( 'reason', $order->get_id() ); // Get the checkout custom field
+            $cancel_reason = get_field( 'cancel_reason', $order->get_id() ); // Get the checkout custom field
+            $author_id_meta = get_field( 'author_id', $order->get_id() ); // Get the checkout custom field
+            $booking_type = get_field( 'booking_type', $order->get_id() );
+            // Additional order meta
+            $billing_first_name = $order->get_meta('_billing_first_name');
+            $billing_last_name = $order->get_meta('_billing_last_name');
+            $billing_company = $order->get_meta('_billing_company');
+            $billing_email = $order->get_meta('_billing_email');
+            $billing_phone = $order->get_meta('_billing_phone');
+            $product_id = $order->get_meta('product_id');
+            $payment_method = get_field( 'payment_method', $order->get_id() );
+            $total_hours = get_field( 'number_of_hours', $order->get_id() );
+
+            $order_items = $order->get_items();
+            foreach ( $order_items as $item_id => $item ) {
+                $product_id = $item->get_product_id();
+                $product_location_id = get_field('room_description_location', $product_id);
+                // return $product_location_id->ID;
+                // $product_author_id = get_post_field( 'post_author', $product_id );
+
+
+                $room_location = get_field('room_description_location', $product_id);
+               
+                if ( $product_location_id->ID== $location_id ) {
                     $product_name = $item->get_name();
                     $product_price = $item->get_subtotal() / $item->get_quantity(); // Single item price
                     $booking_date = new DateTime($order_data['date_created']->date( 'Y-m-d H:i:s' ));

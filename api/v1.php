@@ -12,10 +12,10 @@ function my_ajax_callback() {
         $search_term = sanitize_text_field($_GET['q']);
     
         // Construct the REST API URL with the search parameter for the title
-        $url = $cloudfront_domain . '/ayala/wp-json/wp/v2/locations?search=' . urlencode($search_term);
+        $url = $cloudfront_domain . '/wp-json/wp/v2/locations?search=' . urlencode($search_term);
         $response = wp_remote_get($url);
 
-        $tags_url = $cloudfront_domain . '/ayala/wp-json/wp/v2/tags?search=' . urlencode($search_term);
+        $tags_url = $cloudfront_domain . '/wp-json/wp/v2/tags?search=' . urlencode($search_term);
         $tags_response = wp_remote_get($tags_url);
         $final_data = array();
         if (!is_wp_error($response) && $response['response']['code'] === 200) {
@@ -189,7 +189,7 @@ function my_ajax_callback() {
     
     else {
         // Query product categories using the REST API
-        $url = $cloudfront_domain.'/ayala/wp-json/wp/v2/locations';
+        $url = $cloudfront_domain.'/wp-json/wp/v2/locations';
 
         $response = wp_remote_get($url);
         if (!is_wp_error($response) && $response['response']['code'] === 200) {
@@ -323,7 +323,7 @@ function get_completed_orders($data) {
     function getTagNames($tag_ids) {
         $tag_names = array();
         foreach ($tag_ids as $tag_id) {
-            $tag_url = $cloudfront_domain . "/ayala/wp-json/wp/v2/tags/{$tag_id}";
+            $tag_url = $cloudfront_domain . "/wp-json/wp/v2/tags/{$tag_id}";
             $tag_response = wp_remote_get($tag_url);
     
             if (!is_wp_error($tag_response) && $tag_response['response']['code'] === 200) {

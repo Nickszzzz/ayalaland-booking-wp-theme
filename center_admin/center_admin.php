@@ -12,21 +12,44 @@ function rename_shop_manager_role() {
 add_action('init', 'rename_shop_manager_role');
 
 
-function restrict_shop_manager_locations($query) {
-    // Check if the user is a Shop Manager and if it is the main query
-    if(is_admin()) {
-        if (current_user_can('shop_manager') && $query->is_main_query() && isset($_GET['post_type']) & $_GET['post_type'] == 'location' ) {
-            // Get the current user ID
-            $current_user_id = get_current_user_id();
+// function restrict_shop_manager_locations($query) {
+//     // Check if the user is a Shop Manager and if it is the main query
+//     if(is_admin()) {
+//         if (current_user_can('shop_manager') && $query->is_main_query() && isset($_GET['post_type']) & $_GET['post_type'] == 'location' ) {
+//             // Get the current user ID
+//             $current_user_id = get_current_user_id();
     
-            // Modify the query to show only locations created by the current user
-            $query->set('author', $current_user_id);
+//             // Modify the query to show only locations created by the current user
+//             $query->set('author', $current_user_id);
+//         }
+//     }
+    
+// }
+
+// add_action('pre_get_posts', 'restrict_shop_manager_locations');
+
+function restrict_shop_manager_locations($query) {
+    // Check if we're in the admin area, the user is a Shop Manager, and it's the main query
+    if (is_admin() && $query->is_main_query() && current_user_can('shop_manager') && isset($_GET['post_type']) && $_GET['post_type'] == 'location') {
+        // Get the current user ID
+        $current_user_id = get_current_user_id();
+
+        // Fetch the ACF field value for the user (assuming the field name is 'location')
+        $location_id = get_field('location', 'user_' . $current_user_id);
+
+        // Check if a location ID is set for the user
+        if ($location_id) {
+            // Modify the query to show only the location matching the user's ACF field value
+            $query->set('p', $location_id);
+        } else {
+            // If no location is set, modify the query to show no results
+            $query->set('p', 0);
         }
     }
-    
 }
 
 add_action('pre_get_posts', 'restrict_shop_manager_locations');
+
 
 function restrict_shop_manager_bookings($query) {
     // Check if the user is a Shop Manager and if it is the main query
@@ -34,9 +57,37 @@ function restrict_shop_manager_bookings($query) {
         if (current_user_can('shop_manager') && $query->is_main_query() && isset($_GET['post_type']) & $_GET['post_type'] == 'booking' ) {
             // Get the current user ID
             $current_user_id = get_current_user_id();
-    
+            $location_id = get_field('location', 'user_' . $current_user_id);
             // Modify the query to show only bookings created by the current user
-            $query->set('author', $current_user_id);
+            // $query->set('author', $current_user_id);
+
+            // Query to get product IDs based on ACF field 'location'
+            $args = array(
+                'post_type' => 'product', // Adjust post type if needed
+                'posts_per_page' => -1, // Retrieve all products
+                'meta_query' => array(
+                    array(
+                        'key' => 'room_description_location', // ACF field key for location
+                        'value' => $location_id, // Replace with your location ID
+                        'compare' => '=', // Adjust comparison if needed
+                    ),
+                ),
+                'fields' => 'ids', // Retrieve only IDs to optimize performance
+            );
+            $product_ids = get_posts($args);
+
+            // Add a meta query to filter bookings based on product IDs
+            if (!empty($product_ids)) {
+                $meta_query = array(
+                    'relation' => 'AND',
+                    array(
+                        'key' => 'product_id', // Assuming 'product_id' is the meta key for the product associated with the booking
+                        'value' => $product_ids,
+                        'compare' => 'IN',
+                    ),
+                );
+                $query->set('meta_query', $meta_query);
+            }
         }
     }
     
@@ -44,15 +95,37 @@ function restrict_shop_manager_bookings($query) {
 
 add_action('pre_get_posts', 'restrict_shop_manager_bookings');
 
+// function restrict_shop_manager_products($query) {
+//     // Check if the user is a Shop Manager and if it is the main query
+//     if(is_admin()) {
+//         if (current_user_can('shop_manager') && $query->is_main_query() && isset($_GET['post_type']) & $_GET['post_type'] == 'product' ) {
+//             // Get the current user ID
+//             $current_user_id = get_current_user_id();
+    
+//             // Modify the query to show only bookings created by the current user
+//             $query->set('author', $current_user_id);
+//         }
+//     }
+    
+// }
+
+
 function restrict_shop_manager_products($query) {
     // Check if the user is a Shop Manager and if it is the main query
     if(is_admin()) {
         if (current_user_can('shop_manager') && $query->is_main_query() && isset($_GET['post_type']) & $_GET['post_type'] == 'product' ) {
             // Get the current user ID
             $current_user_id = get_current_user_id();
-    
-            // Modify the query to show only bookings created by the current user
-            $query->set('author', $current_user_id);
+            $location_id = get_field('location', 'user_' . $current_user_id);
+            
+            $meta_query = array(
+                array(
+                    'key' => 'room_description_location',
+                    'value' => $location_id,
+                    'compare' => '='
+                )
+            );
+            $query->set('meta_query', $meta_query);
         }
     }
     
