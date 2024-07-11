@@ -8,7 +8,7 @@
 
     <div class="gf_browser_chrome gform_wrapper gravity-theme gform-theme--no-framework book__now-form_wrapper"
         id="gform_wrapper_2">
-        <form method="get" enctype="multipart/form-data" id="gform_2" class="book__now-form" action="/check-out/"
+        <form method="get" enctype="multipart/form-data" id="gform_2" class="book__now-form" action="<?php echo home_url().'/ayala/save-order'; ?>"
             data-formid="2" novalidate="">
             <input type="hidden" name="formtoken" value="L1dsrqjQNca4Bado4M17I1iWPqZOLk69swvTxWkjN6tknx2C00JgJudIgb68Ul65c1eeO0Wmzoc6h7EdX2mdP">
             <input type="hidden" name="add-to-cart" value="<?php echo $id; ?>">
