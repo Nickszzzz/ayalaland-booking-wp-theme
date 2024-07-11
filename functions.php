@@ -781,3 +781,81 @@ function add_custom_user_meta_fields($user) {
 }
 add_action('show_user_profile', 'add_custom_user_meta_fields');
 add_action('edit_user_profile', 'add_custom_user_meta_fields');
+
+
+add_filter('woocommerce_before_order_object_save', 'prevent_order_status_change', 10, 2);
+
+function prevent_order_status_change($order, $data_store) {
+    // Get the old order status
+    $old_status = $order->get_status();
+    
+    // Get the new order status
+    $new_status = isset($_POST['order_status']) ? sanitize_text_field($_POST['order_status']) : $old_status;
+
+    // Only proceed if the status is being changed
+    if ($old_status !== $new_status) {
+        // Get the checkin and checkout custom fields
+        $checkin = get_field('checkin', $order->get_id());
+        $checkout = get_field('checkout', $order->get_id());
+
+        if ($checkin && $checkout) {
+            // Convert the checkin and checkout dates to DateTime objects
+            $order_checkin_date = new DateTime($checkin, new DateTimeZone('Asia/Manila'));
+            $order_checkout_date = new DateTime($checkout, new DateTimeZone('Asia/Manila'));
+
+            // Get the current date
+            $current_date = new DateTime('now', new DateTimeZone('Asia/Manila'));
+
+            // Check if the start date or end date is before or equal to the current date
+            if ($order_checkin_date <= $current_date || $order_checkout_date <= $current_date) {
+                throw new Exception(sprintf(__('You are not allowed to change order from %s to %s as the booked slot has passed.', 'woocommerce'), $old_status, $new_status));
+                return false;
+            }
+        } else {
+            throw new Exception(__('Checkin or checkout date is missing.', 'woocommerce'));
+        }
+    }
+
+    return $order;
+}
+
+
+add_action('admin_init', 'log_console_if_order_status_change_prevented');
+
+function log_console_if_order_status_change_prevented() {
+    global $pagenow;
+   
+    // Check if we are on the edit order page
+    if ($pagenow === 'admin.php' && isset($_GET['page']) && $_GET['page'] == 'wc-orders') {
+        $order_id = $_GET['id'];
+        
+        // Get the checkin and checkout custom fields
+        $checkin = get_field('checkin', $order_id);
+        $checkout = get_field('checkout', $order_id);
+
+        if ($checkin && $checkout) {
+
+            // Convert checkin and checkout to JavaScript Date format
+            $order_checkin_date = new DateTime($checkin);
+            $order_checkout_date = new DateTime($checkout);
+
+            // Get the current date
+            $current_date = new DateTime('now', new DateTimeZone('Asia/Manila'));
+
+            // Check if the start date or end date is before or equal to the current date
+            if ($order_checkin_date <= $current_date || $order_checkout_date <= $current_date) {
+                // Output JavaScript directly in the admin header
+                ?>
+                <script type="text/javascript">
+                    document.addEventListener('DOMContentLoaded', function() {
+                        var orderStatusSelect = document.getElementById('order_status');
+                        if (orderStatusSelect) {
+                            orderStatusSelect.disabled = true;
+                        }
+                    });
+                </script>
+                <?php
+            }
+        }
+    }
+}

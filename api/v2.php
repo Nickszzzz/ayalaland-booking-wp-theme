@@ -1421,6 +1421,7 @@ function get_custom_woocommerce_orders( $data ) {
                     $order_checkout_date = new DateTime($checkout);
                     $order_checkout_date = $order_checkout_date->format('M-d-Y h:i A');
 
+                    
                     $response[] = array(
                         'id'            => 'ALO'.padNumber($order_data['id'], 6),
                         'booking_date'    => $booking_date,
@@ -1571,7 +1572,7 @@ function get_center_admin_woocommerce_orders( $data ) {
                         'tin_number' => $billing_tin_number,
                         'number_of_hours' => $number_of_hours,
                         'booking_notes' => $booking_notes,
-                        'add_ons' => $booking_notes,
+                        'add_ons' => $ad_ons,
                         'number_of_seats' => $number_of_seats,
                         'overall_total' => $overall_total,
                         'author_id' => $order->get_customer_id(),
