@@ -53,11 +53,12 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
     }
     $location_id = get_field('room_description_location', $product_id)->ID;
 
+    $center_emails = get_center_admin_emails($order_id);
 
     $email_info = array(
         array(
             "name" => "Admin",
-            "email" => $email_sender,
+            "email" => [$email_sender],
             "message" => "
                 <p>Admin,</p>
 
@@ -83,7 +84,7 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
         ),
         array(
             "name" => $author_name,
-            "email" => $author_email,
+            "email" => $center_emails,
             "message" => "
                 <pCenter Admin,</p>
 
@@ -109,7 +110,7 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
         ),
         array(
             "name" => $billing_firstname.' '.$billing_lastname,
-            "email" => $billing_email,
+            "email" => [$billing_email],
             "message" => "
             <p>Dear ".$billing_firstname.' '.$billing_lastname.",</p>
 
@@ -134,10 +135,14 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
              "subject" => $email_from.' | Cancelled Room Booking'
         ),
     );
+    
     foreach($email_info as $info) {
-        // Send the email
-        wp_mail($info['email'], $info['subject'], $info['message'], $headers);
-
+        if (is_array($info['email'])) {
+            foreach ($info['email'] as $email) {
+                // Send the email
+                wp_mail($email, $info['subject'], $info['message'], $headers);
+            }
+        }
     }
 
     $post_id = get_post_meta($order_id, 'post_id', true);

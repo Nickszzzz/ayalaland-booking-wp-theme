@@ -764,3 +764,77 @@ function add_shop_manager_admin_styles() {
 
 // Hook the function to the admin_enqueue_scripts action
 add_action('admin_enqueue_scripts', 'add_shop_manager_admin_styles');
+
+
+if (!function_exists('get_center_admin_emails')) {
+    function get_center_admin_emails($order_id) {
+        // Get an instance of the WC_Order object
+        $order = wc_get_order( $order_id );
+        // Array to store unique emails and display names
+        $unique_emails = [];
+        $seen_emails = [];
+        if ( $order ) {
+            // Loop through order items
+            foreach ( $order->get_items() as $item_id => $item ) {
+                // Get the product ID
+                $product_id = $item->get_product_id();
+                
+                // Output the product ID
+                $room_location = get_field('room_description_location', $product_id);
+
+                // Define the query arguments
+                    $args = array(
+                        'meta_key' => 'location', // The meta key for the ACF field
+                        'meta_value' => $room_location->ID, // The value you want to match
+                        'meta_compare' => '=', // Comparison operator
+                    );
+                
+                    // Perform the user query
+                    $user_query = new WP_User_Query($args);
+                
+                    // Get the results
+                    $users = $user_query->get_results();
+                
+                    // Check for results
+                    if (!empty($users)) {
+                        // Loop through each user
+                        foreach ($users as $user) {
+                            $email = $user->user_email;
+                            $display_name = $user->display_name;
+                
+                            // Check if the email is not in the set of seen emails
+                            if (!in_array($email, $seen_emails)) {
+                                // Add the user details to the unique users array
+                                $unique_emails[] = $email;
+                                // Mark the email as seen
+                                $seen_emails[] = $email;
+                            }
+                        }
+                    }
+
+
+                    $center_email_receiver = get_field('center_email_receiver',  $room_location->ID);
+
+                    // Check for results
+                    if (!empty($center_email_receiver)) {
+                        // Loop through each user
+                        foreach ($center_email_receiver as $center_email) {
+                            $email = $center_email["email"];
+                
+                            // Check if the email is not in the set of seen emails
+                            if (!in_array($email, $seen_emails)) {
+                                // Add the user details to the unique users array
+                                $unique_emails[] = $email;
+                                // Mark the email as seen
+                                $seen_emails[] = $email;
+                            }
+                        }
+                    }
+
+            }
+        } 
+        
+        return $unique_emails;
+
+    }
+}

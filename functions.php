@@ -859,3 +859,99 @@ function log_console_if_order_status_change_prevented() {
         }
     }
 }
+
+
+function add_center_admin_metabox() {
+    add_meta_box(
+        'center_admin_accounts',        // Unique ID
+        'Center Admin Accounts',        // Box title
+        'center_admin_metabox_html',    // Content callback, must be of type callable
+        'location',                     // Post type
+        'normal',                       // Context (position in the screen)
+        'high'                          // Priority (high ensures it's at the top)
+    );
+}
+add_action('add_meta_boxes', 'add_center_admin_metabox');
+
+
+
+function center_admin_metabox_html($post) { 
+    function get_users_by_location($location_id) {
+        // Define the query arguments
+        $args = array(
+            'meta_key' => 'location', // The meta key for the ACF field
+            'meta_value' => $location_id, // The value you want to match
+            'meta_compare' => '=', // Comparison operator
+        );
+    
+        // Perform the user query
+        $user_query = new WP_User_Query($args);
+    
+        // Get the results
+        $users = $user_query->get_results();
+    
+        // Array to store unique emails and display names
+        $unique_users = [];
+        $seen_emails = [];
+    
+        // Check for results
+        if (!empty($users)) {
+            // Loop through each user
+            foreach ($users as $user) {
+                $email = $user->user_email;
+                $display_name = $user->display_name;
+    
+                // Check if the email is not in the set of seen emails
+                if (!in_array($email, $seen_emails)) {
+                    // Add the user details to the unique users array
+                    $unique_users[] = [
+                        'email' => $email,
+                        'display_name' => $display_name
+                    ];
+                    // Mark the email as seen
+                    $seen_emails[] = $email;
+                }
+            }
+        }
+        return $unique_users;
+    }
+
+    $unique_users = get_users_by_location($post->ID);
+    
+    ?>
+
+    <figure class="wp-block-table is-style-stripes">
+        <table class="has-fixed-layout">
+            <thead>
+                <tr>
+                    <th><strong>Center Admin Name</strong></th>
+                    <th><strong>Email</strong></th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+                // Output the distinct emails and display names
+                if (!empty($unique_users)) {
+                    foreach ($unique_users as $user) {
+                        ?>
+                            
+                            <tr>
+                                <td><?php echo $user['display_name']; ?></td>
+                                <td><?php echo $user['email']; ?></td>
+                            </tr>
+                                       
+                        <?php
+                    }
+                } else {
+                    ?>
+                        <td colspan="2" align="center" style="padding: 1.5rem;">No center admin accounts found for this location.</td>
+                    <?php
+                }
+
+                ?>
+            </tbody>
+        </table>
+    </figure>
+    <?php
+    
+}

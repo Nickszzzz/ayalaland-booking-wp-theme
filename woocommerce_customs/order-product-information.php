@@ -71,6 +71,7 @@ class OrderProductInformation {
     
         $order = wc_get_order($order_id);
     
+        return $order_id;
         if (!$order) {
             return 'Order not found';
         }
