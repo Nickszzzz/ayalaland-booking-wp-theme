@@ -122,84 +122,98 @@ function save_reason($order_id) {
 
 
 
-// add_action( 'add_meta_boxes', 'bbloomer_order_meta_box', 10, 2  );
+add_action( 'add_meta_boxes', 'bbloomer_order_meta_box', 10, 2  );
  
 function bbloomer_order_meta_box($order) {
-    add_meta_box( 'additional_information', 'Additional Informations', 'bbloomer_single_order_meta_box', 'woocommerce_page_wc-orders', 'advanced', 'high' );
+    add_meta_box( 'user_information', 'User Informations', 'bbloomer_single_order_meta_box', 'woocommerce_page_wc-orders', 'advanced', 'high' );
 }
- 
+
 function bbloomer_single_order_meta_box($order) {
     // global $post; // OPTIONALLY USE TO ACCESS ORDER POST
 
-    $id = $order->get_id();
-    $orders = wc_get_order($order->get_id());
-    $first_item = current($orders->get_items());
-    $product_id = $first_item->get_product_id();
-    $location_id = get_field('room_description_location', $product_id);
+    // $orders = wc_get_order($order->get_id());
+    // $first_item = current($orders->get_items());
+    // $product_id = $first_item->get_product_id();
+    // $location_id = get_field('room_description_location', $product_id);
 
-    // Get all post meta for the order
-    $all_meta = get_post_meta($id);
-    $billing_email = get_post_meta($id, '_billing_email', true);
-    // // Assuming $location_id is the ID of the location post
-    // $location_id = 845; // Replace with the actual ID
+    // $billing_email = get_post_meta($id, '_billing_email', true);
+    // // // Assuming $location_id is the ID of the location post
+    // // $location_id = 845; // Replace with the actual ID
 
-    // // Get the post author (user ID) of the location post
-    $author_id = get_post_field('post_author', $location_id);
-update_post_meta($id, 'product_id', $product_id);
-    $user_data = get_userdata($author_id);
+    // // // Get the post author (user ID) of the location post
+    // $author_id = get_post_field('post_author', $location_id);
+    // update_post_meta($id, 'product_id', $product_id);
+    // $user_data = get_userdata($author_id);
 
-    if ($user_data) {
-        // Get user email
-        $user_email = $user_data->user_email;
-        // Get user roles (user type)
-        $user_roles = $user_data->roles;
+    // if ($user_data) {
+    //     // Get user email
+    //     $user_email = $user_data->user_email;
+    //     // Get user roles (user type)
+    //     $user_roles = $user_data->roles;
     
-        // Assuming a user may have multiple roles, use the first role if available
-        $user_type = !empty($user_roles) ? $user_roles[0] : 'No Role';
+    //     // Assuming a user may have multiple roles, use the first role if available
+    //     $user_type = !empty($user_roles) ? $user_roles[0] : 'No Role';
     
-        // Now, $user_email contains the email, and $user_type contains the user type (role)
+    //     // Now, $user_email contains the email, and $user_type contains the user type (role)
         
-        // Example: Output the email and user type
+    //     // Example: Output the email and user type
 
-    }
-    $user_email = '	totestertester@gmail.com';
-    $user = get_user_by('email', $user_email);
-    if ($user) {
-        // Get the user's first name
-        $first_name = get_user_meta($user->ID, 'first_name', true);
+    // }
+    // $user_email = '	totestertester@gmail.com';
+    // $user = get_user_by('email', $user_email);
+    // if ($user) {
+    //     // Get the user's first name
+    //     $first_name = get_user_meta($user->ID, 'first_name', true);
     
-        // Display the user's first name
-    }
+    //     // Display the user's first name
+    // }
 
-    $checkin = get_post_meta($order->get_id(), 'checkin', true);
-	$checkout = get_post_meta($order->get_id(), 'checkout', true);
-    // Parse the date and time using DateTime
-    $checkinDateTime = new DateTime($checkin);
-    $checkoutDateTime = new DateTime($checkout);
+    // $checkin = get_post_meta($order->get_id(), 'checkin', true);
+	// $checkout = get_post_meta($order->get_id(), 'checkout', true);
+    // // Parse the date and time using DateTime
+    // $checkinDateTime = new DateTime($checkin);
+    // $checkoutDateTime = new DateTime($checkout);
 
-    // Format the time as HH:mm:ss A
-    $checkin_time = $checkinDateTime->format('g:i:s A');
-    $checkout_time = $checkoutDateTime->format('g:i:s A');
+    // // Format the time as HH:mm:ss A
+    // $checkin_time = $checkinDateTime->format('g:i:s A');
+    // $checkout_time = $checkoutDateTime->format('g:i:s A');
 
-?>
-<table>
-    <thead>
-        <tr>
-            <th>Field</th>
-            <th>Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php foreach ($all_meta as $field => $values): ?>
-        <tr>
-            <td style="width: 50%;"><?php echo htmlspecialchars($field); ?></td>
-            <td><?php echo htmlspecialchars($values[0]); ?></td>
-        </tr>
-        <?php endforeach; ?>
-    </tbody>
-</table>
-<?php
-    // echo 'Whatever HTML content'.$order;
+   
+    $billing_first_name = $order->get_meta('_billing_first_name');
+    $billing_last_name = $order->get_meta('_billing_last_name');
+    $billing_company = $order->get_meta('_billing_company');
+    $billing_email = $order->get_meta('_billing_email');
+    $billing_phone = $order->get_meta('_billing_phone');
+    $billing_tin_number = get_field( 'billing_tin_number', $order->get_id() ); // Get the checkout custom field
+
+    ?>
+    <figure class="wp-block-table is-style-stripes user-information-metabox">
+        <table >
+            <tbody>
+                <tr style="background-color: #ffffff;">
+                    <td >Full Name</td>
+                    <td ><?php echo $billing_first_name.  " ". $billing_last_name ?></td>
+                </tr>  
+                <tr style="background-color: #ffffff;">
+                    <td >Email</td>
+                    <td ><?php echo $billing_email?></td>
+                </tr>   
+                <tr style="background-color: #ffffff;">
+                    <td >Contact Number</td>
+                    <td ><?php echo $billing_phone?></td>
+                </tr>  
+                <tr style="background-color: #ffffff;">
+                    <td >Company Name</td>
+                    <td ><?php echo $billing_company?></td>
+                </tr>  
+                <tr style="background-color: #ffffff;">
+                    <td >TIN Number</td>
+                    <td ><?php echo $billing_tin_number?></td>
+                </tr>      
+            </tbody>
+        </table>
+    </figure>
+    <?php
 }
 
 // Add the metabox

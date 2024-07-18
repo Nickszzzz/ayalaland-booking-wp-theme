@@ -14,3 +14,39 @@ mark.order-status  {
 .post-type-booking.post-new-php #misc-publishing-actions {
     display: none !important;
 }
+
+.user-information-metabox {
+    background-color: initial;
+    border-bottom: 1px solid #f0f0f0;
+    border-collapse: inherit;
+    border-spacing: 0;
+    margin: 0 0 1em;
+    overflow-x: auto;
+}
+
+.user-information-metabox table {
+    table-layout: fixed;
+    width: 100%;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.user-information-metabox thead {
+    border-bottom: 3px solid;
+}
+
+.user-information-metabox th {
+    border-color: #0000;
+    word-break: break-word;
+    border: 1px solid;
+    padding: .5em;
+}
+
+.user-information-metabox tbody tr:nth-child(odd) {
+    background-color: #f0f0f0 !important;
+}
+
+.user-information-metabox tbody td {
+    padding: 1rem;
+    border: 1px solid #e0e0e0;
+}

@@ -306,7 +306,8 @@ function get_order_booked_slots_custom($product_id, $date) {
     LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
     LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
     WHERE lookup.product_id = %d
-    AND orders.status != 'trash'
+    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+    AND orders.status NOT IN ('trash', 'deleted')
 ", $product_id);
     $orders = $wpdb->get_results($query);
 
@@ -2729,7 +2730,7 @@ function get_completed_orders_v2($data) {
         'limit'      => -1,
         'orderby'    => 'date',
         'order'      => 'DESC',
-        'post_status' => array('wc-ayala_approved', 'wc-denied_request'), // Add more statuses as needed
+        'post_status' => array('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request'), // Add more statuses as needed
         'return'     => 'ids',
     ) );
     $orders  = $query->get_orders();
@@ -2851,7 +2852,7 @@ function get_partial_orders_v2($data) {
         'limit'      => -1,
         'orderby'    => 'date',
         'order'      => 'DESC',
-        'post_status' => array('wc-ayala_approved', 'wc-denied_request'), // Add more statuses as needed
+        'post_status' => array('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request'), // Add more statuses as needed
         'return'     => 'ids',
     ) );
     $orders  = $query->get_orders();
@@ -2912,6 +2913,7 @@ function get_partial_orders_v2($data) {
                     $partial_dates[] = array(
                         "date" => $currentDate->format('Y-m-d'),
                         "product_id" => $product_id,
+                        "order_id" => $order_id,
                         "checkin" =>  $checkin->format('Y-m-d'),
                         "checkout" => $checkoutStart->format('Y-m-d'),
                         "totalHours" => $totalHours,
@@ -2937,6 +2939,16 @@ function get_disabled_dates_by_product_id_callback_v2($data) {
     $current_date = isset($data['current_date']) ? $data['current_date'] : date('D M d Y H:i:s T');
 
     // Prepare and execute the SQL query
+//     $query = $wpdb->prepare("
+//     SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
+//     FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
+//     INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
+//     LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
+//     LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
+//     WHERE lookup.product_id = %d
+//     AND orders.status != 'trash'
+// ", $product_id);
+
     $query = $wpdb->prepare("
     SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
     FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
@@ -2944,8 +2956,11 @@ function get_disabled_dates_by_product_id_callback_v2($data) {
     LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
     LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
     WHERE lookup.product_id = %d
-    AND orders.status != 'trash'
-", $product_id);
+    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+    AND orders.status NOT IN ('trash', 'deleted')
+    ", $product_id);
+
+
     $orders = $wpdb->get_results($query);
 
     $start_time_str = get_field('operating_hours_start', $product_id);
@@ -3026,6 +3041,7 @@ function get_disabled_dates_by_product_id_callback_v2($data) {
 
             if($formattedDate === $current_date->format('Y-m-d')) {
                 $disabled_dates[] = [
+                    "order" => $order, 
                     "start" => $checkin_time_24hr, 
                     "end" => $checkout_time_24hr,
                     // "start" => $checkin_value->format('Y-m-d'), 
@@ -3174,14 +3190,15 @@ function get_order_booked_slots($product_id) {
 	
     // Prepare and execute the SQL query to retrieve booked slots
     $query = $wpdb->prepare("
-        SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
-        FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
-        INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
-        LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
-        LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
-        WHERE lookup.product_id = %d
-        AND orders.status != 'trash'
-    ", $product_id);
+    SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
+    FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
+    INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
+    LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
+    LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
+    WHERE lookup.product_id = %d
+    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+    AND orders.status NOT IN ('trash', 'deleted')
+", $product_id);
     $orders = $wpdb->get_results($query);
 
 
@@ -4276,7 +4293,8 @@ function validate_booking_times($checkin, $checkout, $product_id) {
     LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
     LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
     WHERE lookup.product_id = %d
-    AND orders.status != 'trash'
+    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+    AND orders.status NOT IN ('trash', 'deleted')
 ", $product_id);
 
     $orders = $wpdb->get_results($query);
