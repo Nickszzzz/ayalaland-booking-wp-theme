@@ -5,6 +5,8 @@ Template Name: Custom Form Template
 
 // Get values from parameters
 
+echo 'working';
+wp_die();
 
 $current_user_id = get_current_user_id();
 $user_info = get_userdata( $current_user_id );

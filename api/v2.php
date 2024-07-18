@@ -775,6 +775,15 @@ function handle_user_registration($request) {
     // Update ACF field (phone_number)
     update_field('phone_number', $contact_number, 'user_' . $user_id);
 
+     // Set user nickname and display name to full name
+     $full_name = $first_name . ' ' . $last_name;
+
+    wp_update_user([
+        'ID'           => $user_id,
+        'nickname'     => $full_name, // Set nickname to full name
+        'display_name' => $full_name, // Set display name to full name
+    ]);
+
 
     // Set user role to customer
     $user = new WP_User($user_id);
@@ -1039,8 +1048,9 @@ function update_user_information($request) {
         
         $userdata['user_email'] = $new_email;
     }
-    if (isset($updated_data['display_name'])) {
-        $userdata['display_name'] = sanitize_text_field($updated_data['display_name']);
+    if (isset($updated_data['fullname'])) {
+        $userdata['display_name'] = sanitize_text_field($updated_data['fullname']);
+        $userdata['nickname'] = sanitize_text_field($updated_data['fullname']); // Update nickname to match display name
     }
 
     if (isset($updated_data['center_name'])) {
@@ -1048,6 +1058,7 @@ function update_user_information($request) {
         $userdata['display_name'] = sanitize_text_field($updated_data['center_name']);
         $userdata['nickname'] = sanitize_text_field($updated_data['center_name']); // Update nickname to match display name
     }
+
 
     // Perform the update
     $result = wp_update_user($userdata);
@@ -2487,8 +2498,20 @@ function handle_custom_orders_creation(WP_REST_Request $request) {
 
     // Get and validate common parameters
     $user_id = intval($request->get_param('user_id'));
-    $billing_first_name = sanitize_text_field($request->get_param('firstname'));
-    $billing_last_name = sanitize_text_field($request->get_param('lastname'));
+    // Initialize first_name and last_name variables
+    $billing_first_name = '';
+    $billing_last_name = '';
+    $billing_full_name = sanitize_text_field($request->get_param('fullname'));
+
+    // Check if fullname is empty or not
+    if ( empty( $billing_full_name ) ) {
+        $billing_first_name = sanitize_text_field($request->get_param('firstname'));
+        $billing_last_name = sanitize_text_field($request->get_param('lastname'));
+    } else {
+        // If fullname is not empty, set first_name to fullname and leave last_name empty
+        $billing_first_name = $billing_full_name;
+    }
+
     $billing_company = sanitize_text_field($request->get_param('company_name'));
     $country = sanitize_text_field($request->get_param('country_region'));
     $billing_email = sanitize_email($request->get_param('email_address'));
@@ -2568,6 +2591,15 @@ function handle_custom_orders_creation(WP_REST_Request $request) {
             continue;
         }
 
+        $address = array(
+            'first_name' => $billing_first_name,
+            'last_name'  => $billing_last_name,
+            'company'    => $billing_company,
+            'email'      => $billing_email,
+            'phone'      => $billing_phone,
+            'country'    => $country
+        );
+    
         // Set the order address
         $order->set_address($address, 'billing');
 

@@ -6,3 +6,11 @@ mark.order-status  {
     background-color: transparent;
 }
 
+.post-type-shop_order .page-title-action {
+    display: none !important;
+}
+
+.post-type-booking.post-new-php #minor-publishing-actions,
+.post-type-booking.post-new-php #misc-publishing-actions {
+    display: none !important;
+}

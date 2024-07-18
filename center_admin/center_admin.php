@@ -596,7 +596,7 @@ function modify_booking_menu() {
 }
 
 add_action('admin_menu', 'modify_booking_menu');
-add_filter( 'admin_url', 'wpse_271288_change_add_new_link_for_post_type', 10, 2 );
+// add_filter( 'admin_url', 'wpse_271288_change_add_new_link_for_post_type', 10, 2 );
 function wpse_271288_change_add_new_link_for_post_type( $url, $path ){
     if( $path === 'post-new.php?post_type=booking' ) {
         $url = home_url().'/meeting-rooms/';
@@ -836,5 +836,52 @@ if (!function_exists('get_center_admin_emails')) {
         
         return $unique_emails;
 
+    }
+}
+
+
+function custom_redirect_after_post_publish( $location, $post_id ) {
+    // Check if it's the correct post type and action
+    if ( get_post_type( $post_id ) === 'booking' && isset( $_POST['publish'] ) ) {
+        // Replace 'template-custom-form.php' with your custom template filename
+        $location = home_url( '/save-order/' ); // Adjust the URL as needed
+    }
+    return $location;
+}
+add_filter( 'redirect_post_location', 'custom_redirect_after_post_publish', 10, 2 );
+
+function custom_modify_add_new_button( $translated_text, $text, $domain ) {
+    global $typenow;
+    if ( 'booking' == $typenow ) {
+        switch ( $text ) {
+            case 'Add New': // Replace 'Add New' with the default text in your language
+                $translated_text = 'Add New Booking'; // Replace with your desired text
+                break;
+        }
+    }
+    
+    return $translated_text;
+}
+add_filter( 'gettext', 'custom_modify_add_new_button', 10, 3 );
+
+
+add_action('show_user_profile', 'custom_show_user_profile_fields');
+add_action('edit_user_profile', 'custom_show_user_profile_fields');
+
+function custom_show_user_profile_fields($user) {
+    // Get user meta field (assuming sso_login is stored as user meta)
+    $sso_login = get_user_meta($user->ID, 'sso_login', true);
+    
+    // Check if sso_login is true
+    if ($sso_login) {
+        // Hide firstname and lastname fields
+        ?>
+        <script>
+            jQuery(document).ready(function($) {
+                $('#first_name').closest('tr').hide(); // Hide firstname field
+                $('#last_name').closest('tr').hide(); // Hide lastname field
+            });
+        </script>
+        <?php
     }
 }

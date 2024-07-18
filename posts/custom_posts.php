@@ -73,7 +73,7 @@ function create_booking_posts() {
         'hierarchical'       => false,
         'menu_position'      => 5,
         'menu_icon'          => 'dashicons-tagcloud',
-        'supports'           => array( 'title', 'editor', 'thumbnail', 'excerpt', 'author', 'delete_post' ),
+        'supports'           => array(   'delete_post' ),
         'show_in_rest'       => true,
         'rest_base'          => 'bookings',
         'rest_controller_class' => 'WP_REST_Posts_Controller',
