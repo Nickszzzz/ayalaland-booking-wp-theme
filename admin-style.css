@@ -1,5 +1,10 @@
-.post-type-booking .untrash {
+.post-type-booking .untrash,
+.post-type-booking #postbox-container-1 {
     display: none !important;
+}
+
+.post-type-booking #post-body {
+    width: 100% !important;
 }
 
 mark.order-status  {
@@ -49,4 +54,8 @@ mark.order-status  {
 .user-information-metabox tbody td {
     padding: 1rem;
     border: 1px solid #e0e0e0;
+}
+
+.mce-notification-inner {
+    display: none !important;
 }

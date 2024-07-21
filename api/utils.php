@@ -25,6 +25,7 @@ function calculate_working_hours(WP_REST_Request $request) {
     $operatingDaysStarts = $params['operatingDaysStarts'];
     $operatingDaysEnds = $params['operatingDaysEnds'];
 
+
     // Compute total working hours
     $totalWorkingHours = compute_total_working_hours(
         $room_id,
@@ -54,6 +55,7 @@ function compute_total_working_hours(
     $operatingDaysStarts, 
     $operatingDaysEnds
 ) {
+
     $daysMap = array(
         'MO' => 'Monday',
         'TU' => 'Tuesday',
@@ -190,7 +192,8 @@ function get_disabled_dates_by_product_id_callback_util($product_id, $date) {
     LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
     LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
     WHERE lookup.product_id = %d
-    AND orders.status != 'trash'
+    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+    AND orders.status NOT IN ('trash', 'deleted')
 ", $product_id);
     $orders = $wpdb->get_results($query);
 

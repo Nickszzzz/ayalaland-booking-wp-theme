@@ -871,9 +871,9 @@ add_action('edit_user_profile', 'custom_show_user_profile_fields');
 function custom_show_user_profile_fields($user) {
     // Get user meta field (assuming sso_login is stored as user meta)
     $sso_login = get_user_meta($user->ID, 'sso_login', true);
-    
+
     // Check if sso_login is true
-    if ($sso_login) {
+    if ($sso_login === true) {
         // Hide firstname and lastname fields
         ?>
         <script>
