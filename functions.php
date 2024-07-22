@@ -967,3 +967,74 @@ function redirect_all_users_to_login() {
     }
 }
 add_action('template_redirect', 'redirect_all_users_to_login');
+
+
+add_filter('woocommerce_customer_meta_fields', 'remove_woocommerce_user_fields');
+
+function remove_woocommerce_user_fields($fields) {
+    // Unset the fields you want to remove
+    unset($fields['billing']['fields']['billing_first_name']);
+    unset($fields['billing']['fields']['billing_last_name']);
+    unset($fields['billing']['fields']['billing_company']);
+    unset($fields['billing']['fields']['billing_address_1']);
+    unset($fields['billing']['fields']['billing_address_2']);
+    unset($fields['billing']['fields']['billing_city']);
+    unset($fields['billing']['fields']['billing_postcode']);
+    unset($fields['billing']['fields']['billing_country']);
+    unset($fields['billing']['fields']['billing_state']);
+    unset($fields['billing']['fields']['billing_phone']);
+    unset($fields['billing']['fields']['billing_email']);
+    
+    unset($fields['shipping']['fields']['shipping_first_name']);
+    unset($fields['shipping']['fields']['shipping_last_name']);
+    unset($fields['shipping']['fields']['shipping_company']);
+    unset($fields['shipping']['fields']['shipping_address_1']);
+    unset($fields['shipping']['fields']['shipping_address_2']);
+    unset($fields['shipping']['fields']['shipping_city']);
+    unset($fields['shipping']['fields']['shipping_postcode']);
+    unset($fields['shipping']['fields']['shipping_country']);
+    unset($fields['shipping']['fields']['shipping_state']);
+    unset($fields['shipping']['fields']['shipping_phone']);
+    unset($fields['additional']['fields']['_additional_phone']);
+    
+    return $fields;
+}
+
+
+// Add custom column to user table
+function add_company_name_column($columns) {
+    $columns['company_name'] = 'Company Name';
+    return $columns;
+}
+add_filter('manage_users_columns', 'add_company_name_column');
+
+// Populate custom column with user meta value
+function show_company_name_column_content($value, $column_name, $user_id) {
+    if ($column_name == 'company_name') {
+        $company_name = get_user_meta($user_id, 'company_name', true);
+        return esc_html($company_name);
+    }
+    return $value;
+}
+add_filter('manage_users_custom_column', 'show_company_name_column_content', 10, 3);
+
+// Make custom column sortable (optional)
+function sortable_company_name_column($columns) {
+    $columns['company_name'] = 'company_name';
+    return $columns;
+}
+add_filter('manage_users_sortable_columns', 'sortable_company_name_column');
+
+// Handle sorting for the custom column
+function sort_company_name_column($query) {
+    if (!is_admin()) return;
+
+    $orderby = $query->get('orderby');
+    if ('company_name' == $orderby) {
+        $query->set('meta_key', 'company_name');
+        $query->set('orderby', 'meta_value');
+    }
+}
+add_action('pre_get_users', 'sort_company_name_column');
+
+
