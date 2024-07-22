@@ -6,15 +6,15 @@ jQuery(document).ready(function ($) {
         if (order_status === 'Admin Cancelled Booking') {
             e.preventDefault();
 
-            var reason = $("#reason");
-            if (reason.val() === '') {
-                var targetOffset = reason.offset().top;
+            var cancel_reason = $("#cancel_reason");
+            if (cancel_reason.val() === '') {
+                var targetOffset = cancel_reason.offset().top;
                 // Animate the scroll to the target element
                 $('html, body').animate({
                     scrollTop: targetOffset - 300
                 }, 1000); // You can adjust the duration (in milliseconds) as needed
 
-                reason.css({
+                cancel_reason.css({
                     'border-color': 'red',
                     // Add more styles as needed
                 });

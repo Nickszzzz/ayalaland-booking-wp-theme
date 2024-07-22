@@ -17,23 +17,55 @@ function add_reason_metabox() {
 
 // Display the metabox content for "Reason for Denial"
 function display_reason_metabox($order) {
-    $reason = get_post_meta($order->get_id(), '_reason', true);
+    $cancel_reason = get_field('cancel_reason', $order->get_id());
     ?>
     <div>
-        <label for="reason"><?php _e('Reason for Denial:', 'textdomain'); ?></label>
-        <input type="text" id="reason" name="reason" value="<?php echo esc_attr($reason); ?>" style="width: 100%;" />
+        <label for="cancel_reason"><?php _e('Reason for Denial:', 'textdomain'); ?></label>
+        <input type="text" id="cancel_reason" name="cancel_reason" value="<?php echo esc_attr($cancel_reason); ?>" style="width: 100%;" />
     </div>
     <div style="margin-top: 1rem;">
 
         <button type="button" class="button button-primary" id="save_reason">Save Reason</button>
+        <style>
+            /* Animation styles for the loading effect */
+            .loading-button::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+                animation: loadingAnimation 1.5s infinite;
+            }
+
+            .loading-button {
+                display: none;
+            }
+
+            #save_reason {
+                position: relative;
+                border: none !important;
+            }
+
+            @keyframes loadingAnimation {
+                0% {
+                    left: -100%;
+                }
+                100% {
+                    left: 100%;
+                }
+            }
+        </style>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var button = document.getElementById('save_reason');
             if (button) {
+
                 button.addEventListener('click', function () {
                     button.classList.add('loading-button');
-                    var denialReasonValue = document.getElementById('reason').value;
+                    var denialReasonValue = document.getElementById('cancel_reason').value;
                     // Send an AJAX request to save the value
                     var xhr = new XMLHttpRequest();
                     xhr.open('POST', ajaxurl, true);
@@ -45,7 +77,7 @@ function display_reason_metabox($order) {
                             button.style.borderColor = '';
                         }
                     };
-                    xhr.send('action=save_reason&order_id=<?php echo esc_js($order->get_id()); ?>&reason=' + encodeURIComponent(denialReasonValue));
+                    xhr.send('action=save_reason&order_id=<?php echo esc_js($order->get_id()); ?>&cancel_reason=' + encodeURIComponent(denialReasonValue));
                 });
             }
         });
@@ -58,12 +90,13 @@ add_action('wp_ajax_save_reason', 'ajax_save_reason');
 
 function ajax_save_reason() {
     $order_id = isset($_POST['order_id']) ? absint($_POST['order_id']) : 0;
-    $reason = isset($_POST['reason']) ? sanitize_text_field($_POST['reason']) : '';
+    $cancel_reason = isset($_POST['cancel_reason']) ? sanitize_text_field($_POST['cancel_reason']) : '';
 
+    return $_POST;
     if ($order_id) {
         $order = wc_get_order($order_id);
-        update_post_meta($order_id, '_reason', $reason);
-        update_field('cancel_reason', $reason, $order_id);
+        update_post_meta($order_id, '_reason', $cancel_reason);
+        update_field('cancel_reason', $cancel_reason, $order_id);
 
         $checkinDateTime = new DateTime(get_field( 'checkin', $order_id ));
         $checkoutDateTime = new DateTime(get_field( 'checkout', $order_id ));
@@ -75,7 +108,7 @@ function ajax_save_reason() {
     
         create_notification_post_with_acf(
             "Booking Cancelled", 
-            "Your meeting room booking request for [$checkinFormatted - $checkoutFormatted] has been cancelled due to [$reason].", 
+            "Your meeting room booking request for [$checkinFormatted - $checkoutFormatted] has been cancelled due to [$cancel_reason].", 
             $user_id, 
             false
         );
@@ -114,10 +147,10 @@ function ajax_save_reason() {
 add_action('woocommerce_process_shop_order_meta', 'save_reason');
 
 function save_reason($order_id) {
-    $reason = isset($_POST['reason']) ? sanitize_text_field($_POST['reason']) : '';
+    $cancel_reason = isset($_POST['cancel_reason']) ? sanitize_text_field($_POST['cancel_reason']) : '';
 
-    update_post_meta($order_id, '_reason', $reason);
-    update_field('cancel_reason', $reason, $order_id);
+    update_post_meta($order_id, '_reason', $cancel_reason);
+    update_field('cancel_reason', $cancel_reason, $order_id);
 }
 
 

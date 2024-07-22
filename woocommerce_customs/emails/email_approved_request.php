@@ -70,6 +70,7 @@ function bbloomer_status_custom_notification_approved_request( $order_id, $order
     }
 
     $center_emails = get_center_admin_emails($order_id);
+    $cancel_reason = get_field( 'cancel_reason', $order->get_id() );
 
     $email_info = array(
         array(
@@ -91,7 +92,7 @@ function bbloomer_status_custom_notification_approved_request( $order_id, $order
                     <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
 
-                <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
+                <p>Reason for Cancellation: ".$cancel_reason."</p>
 
                 <p>Thank you.</p>
 
@@ -118,7 +119,7 @@ function bbloomer_status_custom_notification_approved_request( $order_id, $order
                     <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
                 
-                <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
+                <p>Reason for Cancellation: ".$cancel_reason."</p>
 
                 <p>Thank you.</p>
 

@@ -1704,12 +1704,12 @@ function cancel_order(WP_REST_Request $request) {
         return new WP_Error('order_not_eligible', 'Booking is not eligible for cancellation.', array('status' => 400));
     }
 
-    $order->update_status('wc-ayala_cancelled');
 
     update_field('cancel_reason', $reason, $order_id);
 
 
     $order->save();
+    $order->update_status('wc-ayala_cancelled');
 
     $checkinDateTime = new DateTime(get_field( 'checkin', $order_id ));
     $checkoutDateTime = new DateTime(get_field( 'checkout', $order_id ));
@@ -1847,11 +1847,11 @@ function decline_cancel_request(WP_REST_Request $request) {
     }
 
     update_post_meta($order_id, 'reason_for_denied_cancellation', $reason);
+    $order->save();
 
     // Update order status to cancelled
     $order->update_status('wc-denied_request');
 
-    $order->save();
 
     $checkinDateTime = new DateTime(get_field( 'checkin', $order_id ));
     $checkoutDateTime = new DateTime(get_field( 'checkout', $order_id ));
@@ -1931,11 +1931,13 @@ function approved_cancel_request(WP_REST_Request $request) {
         return new WP_Error('order_not_eligible', 'Booking is not eligible for approve cancellation request.', array('status' => 400));
     }
 
-    // Update order status to cancelled
-    $order->update_status('wc-approved_request');
+   
 
     $order->save();
 
+     // Update order status to cancelled
+     $order->update_status('wc-approved_request');
+     
     $checkinDateTime = new DateTime(get_field( 'checkin', $order_id ));
     $checkoutDateTime = new DateTime(get_field( 'checkout', $order_id ));
     $user_id = get_field( 'user_id', $order_id );
@@ -2346,14 +2348,17 @@ add_action('rest_api_init', 'register_custom_order_endpoint');
 function handle_custom_order_creation(WP_REST_Request $request) {
     global $woocommerce;
 
+    $user_id = intval($request->get_param('user_id'));
+    $user_info = get_userdata($user_id);
+
     // Get values from parameters
-    $billing_first_name = sanitize_text_field($request->get_param('firstname'));
-    $billing_last_name = sanitize_text_field($request->get_param('lastname'));
-    $billing_company = sanitize_text_field($request->get_param('company_name'));
+    $billing_first_name =$user_info->first_name;
+    $billing_last_name = $user_info->last_name;
+    $billing_company = get_field('company_name', 'user_' . $user_id) ?: "";
     $country = sanitize_text_field($request->get_param('country_region'));
-    $billing_email = sanitize_email($request->get_param('email_address'));
-    $billing_phone = sanitize_text_field($request->get_param('contact_number'));
-    $billing_tin_number = sanitize_text_field($request->get_param('tin'));
+    $billing_email = $user_info->user_email;
+    $billing_phone = get_field('phone_number', 'user_' . $user_id);
+    $billing_tin_number = get_field('tin_number', 'user_' . $user_id) ?: "";
     $vat = sanitize_text_field($request->get_param('VAT'));
     $payment_method = sanitize_text_field($request->get_param('payment_method'));
     $booking_notes = $request->get_param('booking_notes');
@@ -2365,8 +2370,8 @@ function handle_custom_order_creation(WP_REST_Request $request) {
     $product_id = intval($request->get_param('product_id'));
     // $number_of_hours = intval($request->get_param('Time (no. of hrs)'));
     $overall_total = floatval(str_replace(['₱', ','], '', $request->get_param('Overall Total')));
-    $user_id = intval($request->get_param('user_id'));
 
+    
     // Parse booking date
     $booking_date = sanitize_text_field($request->get_param('Booking Date'));
     $checkin_date = date_create_from_format('d-m-y H:i A', explode(" - ", $booking_date)[0]) ;

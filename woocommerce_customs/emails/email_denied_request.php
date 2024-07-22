@@ -65,7 +65,7 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
     if(strtolower($post_tags[0]->name) !== 'makati') {
         $payment_email = $author_email;
     }
-
+    $cancel_reason = get_field( 'cancel_reason', $order->get_id() );
     $center_emails = get_center_admin_emails($order_id);
 
     $email_info = array(
@@ -89,7 +89,7 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
                     <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
 
-                <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
+                <p>Reason for Cancellation: ".$cancel_reason."</p>
 
                 <p>Thank you.</p>
 
@@ -116,7 +116,7 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
                     <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
                 
-                <p>Reason for Cancellation: ".get_field('reason', $product_id)."</p>
+                <p>Reason for Cancellation: ".$cancel_reason."</p>
 
                 <p>Thank you.</p>
 

@@ -34,7 +34,7 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
     $lastname = get_user_meta($author_id, 'last_name', true);
  	$product_id = get_post_meta($order_id, 'product_id', true);
     $location_id = get_field('room_description_location', $product_id)->ID;
-    $reason = get_field('reason', $product_id);
+    $cancel_reason = get_field( 'cancel_reason', $order->get_id() );
     $payment_gateway = get_field('payment_gateway', $product_id);
     $booking_notes = get_field( 'booking_notes', $order_id );
     $ad_ons = get_field('ad_ons', $order_id);
@@ -62,7 +62,7 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
             "message" => "
                 <p>Admin,</p>
 
-                <p>A meeting room booking request for ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been cancelled by the Center Admin due to ".get_field('reason', $product_id).".</p>
+                <p>A meeting room booking request for ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been cancelled by the Center Admin due to ".$cancel_reason.".</p>
 
                 <p><strong>Booking Details </strong></p>
 
@@ -88,7 +88,7 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
             "message" => "
                 <pCenter Admin,</p>
 
-                <p>A meeting room booking request for ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been cancelled by the Center Admin due to ".get_field('reason', $product_id).".</p>
+                <p>A meeting room booking request for ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been cancelled by the Center Admin due to ".$cancel_reason.".</p>
 
                 <p><strong>Booking Details </strong></p>
                  <ul>
@@ -114,7 +114,7 @@ function bbloomer_status_custom_notification_ayala_cancelled( $order_id, $order 
             "message" => "
             <p>Dear ".$billing_firstname.' '.$billing_lastname.",</p>
 
-            <p>We regret to inform you that your meeting room booking request for ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been cancelled due to ".$reason.".
+            <p>We regret to inform you that your meeting room booking request for ".getDateFromDateTimeString($checkin).", ".getTimeFromDateTimeString($checkin)." - ".getTimeFromDateTimeString($checkout)." has been cancelled due to ".$cancel_reason.".
 
              <ul>
                     <li><strong>Booking ID:</strong> ALO".padNumber($order_id, 6)."</li>
