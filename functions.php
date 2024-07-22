@@ -956,3 +956,14 @@ function center_admin_metabox_html($post) {
     <?php
     
 }
+
+
+function redirect_all_users_to_login() {
+    // Check if the current request is not the login page or admin area
+    if ( ! ( is_page('login') || is_page('wp-login.php') || is_admin() ) ) {
+        // Redirect to the login page
+        wp_redirect( home_url('/wp-admin') );
+        exit();
+    }
+}
+add_action('template_redirect', 'redirect_all_users_to_login');
