@@ -17,6 +17,7 @@ include_once get_stylesheet_directory() . '/blocks/blocks.php';
   // Add Custom Metabox
   include_once get_stylesheet_directory() . '/center_admin/center_admin.php';
   include_once get_stylesheet_directory() . '/bookings/bookings.php';
+  include_once get_stylesheet_directory() . '/payments/payments.php';
 
 
 // Add Shortcode

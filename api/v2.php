@@ -1344,6 +1344,146 @@ function get_payments_by_author( $data ) {
     return new WP_REST_Response( $response, 200 );
 }
 
+// Add custom REST API endpoint for fetching payments by author
+function custom_get_payments_by_admin_author_endpoint() {
+    register_rest_route( 'v2', '/admin-payments/(?P<author_id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'get_admin_payments_by_author',
+    ) );
+}
+add_action( 'rest_api_init', 'custom_get_payments_by_admin_author_endpoint' );
+
+
+function get_admin_payments_by_author( $data ) {
+    $author_id = $data['author_id'];
+    $current_user = get_userdata( $author_id );
+
+    if ( in_array( 'administrator', $current_user->roles ) ) {
+
+
+        // Admin user - retrieve all payments
+        $orders = wc_get_orders( array(
+            'limit' => -1, // Retrieve all orders
+        ) );
+    } else {
+
+        // Non-admin user - filter payments by author
+        $location_id = get_field('location', 'user_' . $author_id);
+
+        $orders = wc_get_orders( array(
+            'limit' => -1, // Retrieve all orders
+        ) );
+
+        if ( empty( $orders ) ) {
+            return new WP_REST_Response( array( 'message' => 'No payments found' ), 404 );
+        }
+
+        $response = array();
+
+        // Custom statuses to filter
+        $custom_statuses = array(
+            'ayala_cancelled',
+            'ayala_approved',
+            'cancel_request',
+            'denied_request',
+            'approved_request',
+        );
+
+        foreach ( $orders as $order ) {
+            $order_data = $order->get_data();
+            $total_payment_amount = $order->get_total();
+            $payment_method = $order->get_payment_method();
+            $transaction_id = $order->get_transaction_id();
+            $order_status = $order_data['status']; // Get the order status
+            $order_date = $order->get_date_created();
+
+            // Format the date if necessary, for example, to 'Y-m-d H:i:s'
+            $formatted_order_date = $order_date ? $order_date->date('m-d-Y H:i A') : '';
+            // Check if the order status is in the custom statuses array
+            if ( $order->get_status() !== 'trash' && in_array( $order_status, $custom_statuses ) ) {
+                $order_items = $order->get_items();
+                foreach ( $order_items as $item_id => $item ) {
+                    $product_id = $item->get_product_id();
+                    // Get the 'initial' custom field value for the author using ACF
+                    $product_author_id = get_post_field( 'post_author', $product_id );
+                    $author_initial = get_field('initial', 'user_' . $product_author_id);
+                    $product_location_id = get_field('room_description_location', $product_id);
+
+                    if ( $product_location_id->ID == $location_id ) {
+                        $response[] = array(
+                            'transaction_id'       => 'ALO'.padNumber($order_data['id'], 6),
+                            'payment_date'       => $formatted_order_date,
+                            'room_id'     =>  $author_initial.''.padNumber($product_id, 6),
+                            'payment_amount' => $total_payment_amount,
+                            'order_status'   => $order_status,
+                            "location_name" => $product_location_id->post_title
+                        );
+                        break; // Exit the loop after the first match to avoid duplicating payments for the same order
+                    }
+                }
+            }
+        }
+
+        if ( empty( $response ) ) {
+            return new WP_REST_Response( array( 'message' => 'No payments found for this author' ), 404 );
+        }
+
+        return new WP_REST_Response( $response, 200 );
+    }
+    
+    // Admin user - retrieve all payments
+    $response = array();
+
+    // Custom statuses to filter
+    $custom_statuses = array(
+        'ayala_cancelled',
+        'ayala_approved',
+        'cancel_request',
+        'denied_request',
+        'approved_request',
+    );
+
+    foreach ( $orders as $order ) {
+        $order_data = $order->get_data();
+        // Get the order date (created date)
+        $order_date = $order->get_date_created();
+
+        // Format the date if necessary, for example, to 'Y-m-d H:i:s'
+        $formatted_order_date = $order_date ? $order_date->date('m-d-Y H:i A') : '';
+        $total_payment_amount = $order->get_total();
+        $payment_method = $order->get_payment_method();
+        $transaction_id = $order->get_transaction_id();
+        $order_status = $order_data['status']; // Get the order status
+
+        // Check if the order status is in the custom statuses array
+        if ( $order->get_status() !== 'trash' && in_array( $order_status, $custom_statuses ) ) {
+            $order_items = $order->get_items();
+            foreach ( $order_items as $item_id => $item ) {
+                $product_id = $item->get_product_id();
+                // Get the 'initial' custom field value for the author using ACF
+                $product_author_id = get_post_field( 'post_author', $product_id );
+                $author_initial = get_field('initial', 'user_' . $product_author_id);
+                $product_location_id = get_field('room_description_location', $product_id);
+
+                $response[] = array(
+                    'transaction_id'       => 'ALO'.padNumber($order_data['id'], 6),
+                    'payment_date'       => $formatted_order_date,
+                    'room_id'     =>  $author_initial.''.padNumber($product_id, 6),
+                    'payment_amount' => $total_payment_amount,
+                    'order_status'   => $order_status,
+                    "location_name" => $product_location_id->post_title
+                );
+            }
+        }
+    }
+
+    if ( empty( $response ) ) {
+        return new WP_REST_Response( array( 'message' => 'No payments found' ), 404 );
+    }
+
+    return new WP_REST_Response( $response, 200 );
+}
+
 
 
 // Register the custom REST API endpoint

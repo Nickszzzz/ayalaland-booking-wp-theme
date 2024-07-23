@@ -254,6 +254,37 @@ add_action('admin_menu', 'plt_hide_all_in_one_wp_migration_menus', 11);
 
 
 
+function hide_tools_menu_for_shop_manager() {
+    // Check if the current user has the Shop Manager role
+    if (current_user_can('shop_manager')) {
+        remove_menu_page('tools.php'); // Remove Tools menu
+    }
+}
+add_action('admin_menu', 'hide_tools_menu_for_shop_manager', 999);
+
+function restrict_shop_manager_tools_page() {
+    if (current_user_can('shop_manager')) {
+        // Get the current page being accessed
+        $current_screen = get_current_screen();
+        if ($current_screen->id == 'tools' || strpos($_SERVER['REQUEST_URI'], 'tools.php') !== false) {
+            // Redirect to the dashboard or another page
+            wp_redirect(admin_url());
+            exit;
+        }
+    }
+}
+add_action('admin_init', 'restrict_shop_manager_tools_page');
+
+function redirect_shop_manager_dashboard() {
+    // Check if the current user has the Shop Manager role and is on the dashboard page
+    if (current_user_can('shop_manager') && is_admin() && !defined('DOING_AJAX') && is_admin() && $_SERVER['REQUEST_URI'] == '/wp-admin/') {
+        wp_redirect('http://ayalaland-booking.local:10003/wp-admin/edit.php?post_type=location');
+        exit;
+    }
+}
+add_action('admin_init', 'redirect_shop_manager_dashboard');
+
+
 function wpse287823_remove_menu_items() {
 
     
