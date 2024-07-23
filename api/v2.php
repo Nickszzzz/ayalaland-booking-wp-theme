@@ -3199,7 +3199,8 @@ function format_booked_slots_by_availability($product_id, $current_date) {
 
 function format_booked_slots_by_id_availability($id, $date) {
 
-    $slots = format_booked_slots_by_availability($id, $date);
+    $slots = get_order_booked_slots_custom($id, $date);
+
     // Parse the date
     $dateObj = DateTime::createFromFormat('m/d/Y', $date);
     $dateStr = $dateObj->format('Y/m/d');
@@ -3209,8 +3210,8 @@ function format_booked_slots_by_id_availability($id, $date) {
 
     // Convert each slot to the desired format
     foreach ($slots as $slot) {
-        $startTime = DateTime::createFromFormat('H:i', $slot['start']);
-        $endTime = DateTime::createFromFormat('H:i', $slot['end']);
+        $startTime = DateTime::createFromFormat('H:i A', $slot['start']);
+        $endTime = DateTime::createFromFormat('H:i A', $slot['end']);
 
         $startTimeStr = $startTime->format('h:i a');
         $endTimeStr = $endTime->format('h:i a');
