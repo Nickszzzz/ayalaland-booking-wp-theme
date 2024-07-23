@@ -300,16 +300,16 @@ function get_order_booked_slots_custom($product_id, $date) {
 
     // Prepare and execute the SQL query
     $query = $wpdb->prepare("
-    SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
-    FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
-    INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
-    LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
-    LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
-    WHERE lookup.product_id = %d
-    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
-    AND orders.status NOT IN ('trash', 'deleted')
-", $product_id);
-    $orders = $wpdb->get_results($query);
+        SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
+        FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
+        INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
+        LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
+        LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
+        WHERE lookup.product_id = %d
+        AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+        AND orders.status NOT IN ('trash', 'deleted')
+    ", $product_id);
+        $orders = $wpdb->get_results($query);
 
 
     $start_time_str = get_field('operating_hours_start', $product_id);
@@ -2943,17 +2943,6 @@ function get_disabled_dates_by_product_id_callback_v2($data) {
 	
     $current_date = isset($data['current_date']) ? $data['current_date'] : date('D M d Y H:i:s T');
 
-    // Prepare and execute the SQL query
-//     $query = $wpdb->prepare("
-//     SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
-//     FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
-//     INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
-//     LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
-//     LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
-//     WHERE lookup.product_id = %d
-//     AND orders.status != 'trash'
-// ", $product_id);
-
     $query = $wpdb->prepare("
     SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
     FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
@@ -3051,9 +3040,9 @@ function get_disabled_dates_by_product_id_callback_v2($data) {
                     "end" => $checkout_time_24hr,
                     // "start" => $checkin_value->format('Y-m-d'), 
                     // "end" => $checkout_value->format('Y-m-d'),
-                    "cond" => $formattedDate == $current_date->format('Y-m-d'),
-                    "order_date" => $formattedDate,
-                    "current_date" => $current_date->format('Y-m-d'),
+                    // "cond" => $formattedDate == $current_date->format('Y-m-d'),
+                    // "order_date" => $formattedDate,
+                    // "current_date" => $current_date->format('Y-m-d'),
                 ];
             }
             
@@ -3090,8 +3079,149 @@ function get_rooms_data_availability(WP_REST_Request $request) {
     $id = sanitize_text_field($request->get_param('id'));
     $date = sanitize_text_field($request->get_param('date'));
 
-    return format_booked_slots_by_id(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
+    return format_booked_slots_by_id_availability($id, $date);
+    // return format_booked_slots_by_id_availability(get_field('operating_hours_start', $id), get_field('operating_hours_end', $id), $id, $date);
 }
+
+function format_booked_slots_by_availability($product_id, $current_date) {
+    global $wpdb;
+
+    $query = $wpdb->prepare("
+    SELECT checkin.meta_value as checkin_value, checkout.meta_value as checkout_value
+    FROM {$wpdb->prefix}wc_order_product_lookup AS lookup
+    INNER JOIN {$wpdb->prefix}wc_orders AS orders ON lookup.order_id = orders.id
+    LEFT JOIN {$wpdb->prefix}postmeta AS checkin ON orders.id = checkin.post_id AND checkin.meta_key = 'checkin'
+    LEFT JOIN {$wpdb->prefix}postmeta AS checkout ON orders.id = checkout.post_id AND checkout.meta_key = 'checkout'
+    WHERE lookup.product_id = %d
+    AND orders.status IN ('wc-ayala_approved', 'wc-denied_request', 'wc-cancel_request')
+    AND orders.status NOT IN ('trash', 'deleted')
+    ", $product_id);
+
+
+    $orders = $wpdb->get_results($query);
+
+    $start_time_str = get_field('operating_hours_start', $product_id);
+    $end_time_str = get_field('operating_hours_end', $product_id);
+    
+    // return array(
+    //     $orders[0],
+    //     "start" => $hours_start,
+    //     "end" => $hours_end,
+    // );
+    $disabled_dates = array();
+	// Convert the original date string to a Unix timestamp using strtotime
+	$timestamp = strtotime($current_date);
+
+    // return $orders;
+
+	// Format the timestamp into the desired format
+	$formattedDate = date('Y-m-d', $timestamp);
+
+    foreach ($orders as $order) {
+        
+        $order_date = date('Y-m-d', strtotime($order->checkin_value));
+        
+        // if($order_date == $formattedDate) {
+            // $disabled_dates[] = [
+            //     "start" => $checkin_time_24hr, 
+            //     "end" => $checkout_time_24hr,
+            // ];
+        // }
+
+        // Define input data
+        $checkin_value = new DateTime($order->checkin_value);
+        $checkout_value = new DateTime($order->checkout_value);
+
+        // Convert start and end times to DateTime objects
+        $start_time = DateTime::createFromFormat('h:i A', $start_time_str);
+        $end_time = DateTime::createFromFormat('h:i A', $end_time_str);
+
+        // Iterate through each day in the interval
+        $current_date = clone $checkin_value;
+        $current_date->setTime(0, 0, 0); // Set to midnight to start the day comparison
+
+        $interval_end = clone $checkout_value;
+        $interval_end->setTime(0, 0, 0); // Set to midnight to end the day comparison
+
+        while ($current_date <= $interval_end) {
+            // Calculate the working hours for the current date
+            if ($current_date == $checkin_value->format('Y-m-d')) {
+                $working_hours_start = $checkin_value;
+            } else {
+                $working_hours_start = clone $current_date;
+                $working_hours_start->setTime((int)$start_time->format('H'), (int)$start_time->format('i'));
+            }
+
+            if ($current_date == $checkout_value->format('Y-m-d')) {
+                $working_hours_end = $checkout_value;
+            } else {
+                $working_hours_end = clone $current_date;
+                $working_hours_end->setTime((int)$end_time->format('H'), (int)$end_time->format('i'));
+            }
+
+            // Ensure the working hours are within the checkin and checkout bounds
+            if ($working_hours_start < $checkin_value) {
+                $working_hours_start = $checkin_value;
+            }
+            if ($working_hours_end > $checkout_value) {
+                $working_hours_end = $checkout_value;
+            }
+
+            // Format the working hours for output
+            $working_hours_start_formatted = $working_hours_start->format('Y-m-d h:i A');
+            $working_hours_end_formatted = $working_hours_end->format('Y-m-d h:i A');
+
+            // Output the result for the current date
+            // echo $working_hours_start_formatted . " to " . $working_hours_end_formatted . "<br>";
+            $checkin_time_24hr = date('H:i', strtotime($working_hours_start_formatted));
+            $checkout_time_24hr = date('H:i', strtotime($working_hours_end_formatted));
+
+            if($formattedDate === $current_date->format('Y-m-d')) {
+                $disabled_dates[] = [
+                    // "order" => $order, 
+                    "start" => $checkin_time_24hr, 
+                    "end" => $checkout_time_24hr,
+                    // "start" => $checkin_value->format('Y-m-d'), 
+                    // "end" => $checkout_value->format('Y-m-d'),
+                    // "cond" => $formattedDate == $current_date->format('Y-m-d'),
+                    // "order_date" => $formattedDate,
+                    // "current_date" => $current_date->format('Y-m-d'),
+                ];
+            }
+            
+
+            // Move to the next day
+            $current_date->modify('+1 day');
+        }
+    }
+    return $disabled_dates;
+}
+
+function format_booked_slots_by_id_availability($id, $date) {
+
+    $slots = format_booked_slots_by_availability($id, $date);
+    // Parse the date
+    $dateObj = DateTime::createFromFormat('m/d/Y', $date);
+    $dateStr = $dateObj->format('Y/m/d');
+
+    // Initialize an array to hold the formatted date and time ranges
+    $formattedRanges = [];
+
+    // Convert each slot to the desired format
+    foreach ($slots as $slot) {
+        $startTime = DateTime::createFromFormat('H:i', $slot['start']);
+        $endTime = DateTime::createFromFormat('H:i', $slot['end']);
+
+        $startTimeStr = $startTime->format('h:i a');
+        $endTimeStr = $endTime->format('h:i a');
+
+        $formattedRanges[] = "{$dateStr} at {$startTimeStr} - {$dateStr} at {$endTimeStr}";
+    }
+
+    return $formattedRanges;
+}
+
+
 
 function format_booked_slots_by_id($operating_hours_start, $operating_hours_end, $id, $date) {
 
