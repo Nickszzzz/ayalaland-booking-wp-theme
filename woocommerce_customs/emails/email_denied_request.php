@@ -155,14 +155,34 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
         ),
     );
     
-    foreach($email_info as $info) {
+    foreach ($email_info as $info) {
         if (is_array($info['email'])) {
             foreach ($info['email'] as $email) {
-                // Send the email
-                wp_mail($email, $info['subject'], $info['message'], $headers);
+                // Validate the email address format
+                if (!is_email($email)) {
+                    error_log("Invalid email format: $email");
+                    continue; // Skip invalid email addresses
+                }
+    
+                try {
+                    // Attempt to send the email
+                    $sent = wp_mail($email, $info['subject'], $info['message'], $headers);
+    
+                    if (!$sent) {
+                        // Log the failure to send email
+                        error_log("Failed to send email to: $email");
+                    }
+                } catch (Exception $e) {
+                    // Catch and log the exception
+                    error_log("Exception caught while sending email to $email: " . $e->getMessage());
+                }
             }
+        } else {
+            // Handle case where $info['email'] is not an array, if needed
+            error_log('Email info is not an array for ' . $info['subject']);
         }
     }
+    
 
     $post_id = get_post_meta($order_id, 'post_id', true);
     $order_status_slug = $order->get_status();

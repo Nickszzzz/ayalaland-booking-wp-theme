@@ -694,25 +694,7 @@ function recursive_array_search_php_91365( $needle, $haystack )
     return false;
 }
 
-// functions.php or your custom plugin file
 
-function filter_post_object_query_by_current_user($args, $field, $post_id) {
-    // Check if the current user is an administrator
-    if (current_user_can('administrator')) {
-        // Allow administrators to see all posts
-        return $args;
-    }
-
-    // Get the current user's ID
-    $current_user_id = get_current_user_id();
-
-    // Modify the query parameters to include only posts by the current user
-    $args['author'] = $current_user_id;
-
-    return $args;
-}
-
-add_filter('acf/fields/post_object/query', 'filter_post_object_query_by_current_user', 10, 3);
 
 
 function add_cors_http_header(){
@@ -1039,3 +1021,13 @@ function sort_company_name_column($query) {
 add_action('pre_get_users', 'sort_company_name_column');
 
 
+add_filter( 'wp_dropdown_users_args', 'rt_cl_add_to_authors_list', 99 );
+function rt_cl_add_to_authors_list( $users_args ) {
+	global $post_type;
+
+	if ( is_admin() && class_exists('Rtcl' ) && current_user_can('edit_posts') && ( ! empty( $post_type ) && $post_type == rtcl()->post_type ) ) {
+		unset( $users_args['capability'] );
+	}
+
+	return $users_args;
+}

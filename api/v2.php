@@ -80,6 +80,54 @@ function format_location_data($location) {
     return $formatted_location;
 }
 
+add_action('rest_api_init', 'register_locations_endpoint');
+function register_locations_endpoint() {
+    register_rest_route('v2', '/admin-locations/(?P<user_id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'get_locations_by_user_role',
+        'permission_callback' => '__return_true', // Allow all requests for now, handle permissions in callback
+    ));
+}
+
+function get_locations_by_user_role($request) {
+    $user_id = $request->get_param('user_id');
+
+    // Check if user exists
+    $user = get_user_by('id', $user_id);
+    if (!$user) {
+        return new WP_Error('invalid_user', 'Invalid user ID', array('status' => 404));
+    }
+
+    // Check user role
+    if (in_array('administrator', $user->roles)) {
+        // If user is admin, return all locations
+        $args = array(
+            'post_type' => 'location',
+            'post_status' => 'publish',
+            'posts_per_page' => -1,
+        );
+        $locations = get_posts($args);
+        $formatted_locations = array_map('format_location_data', $locations);
+        return rest_ensure_response($formatted_locations);
+    } elseif (in_array('shop_manager', $user->roles)) {
+        // If user is shop manager, get location ID from ACF field
+        $location_id = get_field('location', 'user_' . $user_id);
+        if ($location_id) {
+            $location = get_post($location_id);
+            if ($location && $location->post_type === 'location') {
+                return rest_ensure_response(array(format_location_data($location)));
+            } else {
+                return new WP_Error('invalid_location', 'Invalid location ID', array('status' => 404));
+            }
+        } else {
+            return new WP_Error('no_location_assigned', 'No location assigned to this shop manager', array('status' => 404));
+        }
+    } else {
+        return new WP_Error('forbidden', 'You do not have permission to view locations', array('status' => 403));
+    }
+}
+
+
 
 // Register a custom REST API endpoint for single location
 add_action('rest_api_init', 'register_single_location_endpoint');
@@ -1397,6 +1445,9 @@ function get_admin_payments_by_author( $data ) {
             $order_status = $order_data['status']; // Get the order status
             $order_date = $order->get_date_created();
 
+            $customer_id = $order->get_customer_id(); // Get customer ID
+            $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+
             // Format the date if necessary, for example, to 'Y-m-d H:i:s'
             $formatted_order_date = $order_date ? $order_date->date('m-d-Y H:i A') : '';
             // Check if the order status is in the custom statuses array
@@ -1416,7 +1467,9 @@ function get_admin_payments_by_author( $data ) {
                             'room_id'     =>  $author_initial.''.padNumber($product_id, 6),
                             'payment_amount' => $total_payment_amount,
                             'order_status'   => $order_status,
-                            "location_name" => $product_location_id->post_title
+                            "location_name" => $product_location_id->post_title,
+                            "customer_name" => $customer,
+                            "customer_id" => $customer_id,
                         );
                         break; // Exit the loop after the first match to avoid duplicating payments for the same order
                     }
@@ -1455,6 +1508,9 @@ function get_admin_payments_by_author( $data ) {
         $transaction_id = $order->get_transaction_id();
         $order_status = $order_data['status']; // Get the order status
 
+        $customer_id = $order->get_customer_id(); // Get customer ID
+        $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+
         // Check if the order status is in the custom statuses array
         if ( $order->get_status() !== 'trash' && in_array( $order_status, $custom_statuses ) ) {
             $order_items = $order->get_items();
@@ -1471,7 +1527,9 @@ function get_admin_payments_by_author( $data ) {
                     'room_id'     =>  $author_initial.''.padNumber($product_id, 6),
                     'payment_amount' => $total_payment_amount,
                     'order_status'   => $order_status,
-                    "location_name" => $product_location_id->post_title
+                    "location_name" => $product_location_id->post_title,
+                    "customer_name" => $customer,
+                    "customer_id" => $customer_id,
                 );
             }
         }
@@ -1861,7 +1919,7 @@ function cancel_order(WP_REST_Request $request) {
 
     create_notification_post_with_acf(
         "Booking Cancelled", 
-        "Your meeting room booking request for [$checkinFormatted - $checkoutFormatted] has been cancelled due to [$reason].", 
+        "A meeting room booking request for [$checkinFormatted - $checkoutFormatted] has been cancelled by Center Admin due to [$reason].", 
         $user_id, 
         false
     );
@@ -1977,6 +2035,7 @@ function decline_cancel_request(WP_REST_Request $request) {
         return new WP_Error('invalid_order_id', 'Invalid order ID', array('status' => 404));
     }
 
+   
 
     // Check if order status is eligible for cancellation
     $current_status = $order->get_status();
@@ -1987,8 +2046,11 @@ function decline_cancel_request(WP_REST_Request $request) {
     }
 
     update_post_meta($order_id, 'reason_for_denied_cancellation', $reason);
-    $order->save();
 
+    update_field('cancel_reason', $reason, $order_id);
+
+    $order->save();
+    
     // Update order status to cancelled
     $order->update_status('wc-denied_request');
 
@@ -2089,7 +2151,7 @@ function approved_cancel_request(WP_REST_Request $request) {
 
     create_notification_post_with_acf(
         "Approved Cancellation Request", 
-        "Your cancellation request for the meeting room booking on [$checkinFormatted - $checkoutFormatted] has been forwarded to the center admin for approval. Kindly await the confirmation in a few days.", 
+        "Your cancellation request for the meeting room booking on [$checkinFormatted - $checkoutFormatted] has been approved by the center admin.", 
         $user_id, 
         false
     );

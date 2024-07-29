@@ -50,6 +50,42 @@ function restrict_shop_manager_locations($query) {
 
 add_action('pre_get_posts', 'restrict_shop_manager_locations');
 
+// functions.php or your custom plugin file
+
+function filter_post_object_query_by_current_user($args, $field, $post_id) {
+    // Check if the current user is an administrator
+    if (current_user_can('administrator')) {
+        // Allow administrators to see all posts
+        return $args;
+    }
+
+    // Get the current user's ID
+    $current_user_id = get_current_user_id();
+
+    // Check if the current user is a shop manager
+    if (current_user_can('shop_manager')) {
+        // Fetch the ACF field value for the user (assuming the field name is 'location')
+        $location_id = get_field('location', 'user_' . $current_user_id);
+
+        // Check if a location ID is set for the user
+        if ($location_id) {
+            // Modify the query parameters to include only the specific location post
+            $args['post__in'] = array($location_id);
+        } else {
+            // If no location is set, modify the query to show no results
+            $args['post__in'] = array(0);
+        }
+    } else {
+        // If not a shop manager, limit to posts by the current user
+        $args['author'] = $current_user_id;
+    }
+
+    return $args;
+}
+
+add_filter('acf/fields/post_object/query', 'filter_post_object_query_by_current_user', 10, 3);
+
+
 
 function restrict_shop_manager_bookings($query) {
     // Check if the user is a Shop Manager and if it is the main query
