@@ -16,6 +16,7 @@ include_once get_stylesheet_directory() . '/blocks/blocks.php';
 
   // Add Custom Metabox
   include_once get_stylesheet_directory() . '/center_admin/center_admin.php';
+  include_once get_stylesheet_directory() . '/new_booking/new_booking.php';
   include_once get_stylesheet_directory() . '/bookings/bookings.php';
   include_once get_stylesheet_directory() . '/payments/payments.php';
 
@@ -826,8 +827,12 @@ function log_console_if_order_status_change_prevented() {
             // Get the current date
             $current_date = new DateTime('now', new DateTimeZone('Asia/Manila'));
 
+            // Calculate the date 2 days before the checkin and checkout dates
+            $checkin_minus_2_days = (clone $order_checkin_date)->sub(new DateInterval('P2D'));
+            $checkout_minus_2_days = (clone $order_checkout_date)->sub(new DateInterval('P2D'));
+
             // Check if the start date or end date is before or equal to the current date
-            if ($order_checkin_date <= $current_date || $order_checkout_date <= $current_date) {
+            if ($checkin_minus_2_days <= $current_date || $checkout_minus_2_days <= $current_date) {
                 // Output JavaScript directly in the admin header
                 ?>
                 <script type="text/javascript">
@@ -1030,4 +1035,15 @@ function rt_cl_add_to_authors_list( $users_args ) {
 	}
 
 	return $users_args;
+}
+
+
+
+// Hide the "Bookings" menu item from the WordPress admin
+add_action('admin_menu', 'hide_booking_menu_item');
+
+function hide_booking_menu_item() {
+    if (current_user_can('manage_options')) { // Adjust the capability check if needed
+        remove_menu_page('edit.php?post_type=booking');
+    }
 }

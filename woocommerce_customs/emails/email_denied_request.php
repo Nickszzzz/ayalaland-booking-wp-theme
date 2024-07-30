@@ -143,6 +143,8 @@ function bbloomer_status_custom_notification_denied_request( $order_id, $order )
                     <li><strong>Booking Notes:</strong>  ".$booking_notes."</li>
                     <li><strong>Add-ons:</strong> ".$ad_ons."</li>
                 </ul>
+
+                <p>Reason for Cancellation: ".$cancel_reason."</p>
                 
                 <p>We understand that this may cause inconvenience, and we apologize for any disruption to your plans.</p>
                 <p>If you have any questions or would like to discuss alternative options, please feel free to contact us <a href='alobooking@info.com'>alobooking@info.com</a>.</p>

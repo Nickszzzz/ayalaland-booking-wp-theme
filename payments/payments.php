@@ -37,7 +37,7 @@ function enqueue_custom_scripts_styles_payments($hook_suffix) {
         // Enqueue your CSS file
         wp_enqueue_style('custom-style', get_stylesheet_directory_uri() . '/payments/index-B4KolLmO.css');
         // Enqueue your JavaScript file
-        wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/payments/index-BLrBcPxU.js', array(), null, true);
+        wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/payments/index-wkUj8Rj_.js', array(), null, true);
     }
 }
 add_action('admin_enqueue_scripts', 'enqueue_custom_scripts_styles_payments');
