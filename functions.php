@@ -1047,3 +1047,76 @@ function hide_booking_menu_item() {
         remove_menu_page('edit.php?post_type=booking');
     }
 }
+
+// Filter author dropdown to show only shop managers for custom post type 'location'
+function filter_author_dropdown_for_custom_post_type($args) {
+    // Check if we are on the admin screen and editing the 'location' post type
+    if ( !is_admin() || 'location' !== get_current_screen()->post_type ) {
+        return $args;
+    }
+
+    // Get all users with the shop manager role
+    $shop_managers = get_users(array('role' => 'shop_manager'));
+
+    // Prepare the list of authors
+    $args['include'] = wp_list_pluck($shop_managers, 'ID');
+    
+    return $args;
+}
+add_filter('wp_dropdown_users_args', 'filter_author_dropdown_for_custom_post_type');
+
+
+// Remove the author meta box for the 'location' custom post type
+function remove_author_meta_box_for_custom_post_type() {
+    // Check if we are on the edit screen for 'location' custom post type
+    if ( 'location' === get_current_screen()->post_type ) {
+        remove_meta_box('authordiv', 'location', 'side');
+    }
+}
+add_action('add_meta_boxes', 'remove_author_meta_box_for_custom_post_type');
+
+function custom_general_settings() {
+    // Register the setting
+    register_setting('general', 'frontend_address_url', 'esc_url');
+
+    // Add a new section (or use an existing section if applicable)
+    add_settings_section(
+        'custom_general_settings_section', // Section ID
+        ' ', // Section Title (displayed in the section header)
+        '__return_false', // Callback (none needed)
+        'general' // Page (general settings)
+    );
+
+    // Add the field to the new section
+    add_settings_field(
+        'frontend_address_url', // Field ID
+        'Frontend Address (URL)', // Field Title
+        'frontend_address_url_callback', // Callback function
+        'general', // Page (general settings)
+        'custom_general_settings_section' // Section ID
+    );
+}
+add_action('admin_init', 'custom_general_settings');
+
+// Callback function to render the field
+function frontend_address_url_callback() {
+    $value = get_option('frontend_address_url', '');
+    echo '<input type="url" id="frontend_address_url" name="frontend_address_url" value="' . esc_url($value) . '" class="regular-text" />';
+}
+
+// Move the custom field to be directly below the Site Address (URL)
+function move_custom_field() {
+    ?>
+    <script>
+        jQuery(document).ready(function($) {
+            var customField = $('#frontend_address_url').closest('tr');
+            var siteAddressField = $('#home').closest('tr'); // Site Address (URL) field
+
+            if (siteAddressField.length) {
+                customField.insertAfter(siteAddressField);
+            }
+        });
+    </script>
+    <?php
+}
+add_action('admin_footer', 'move_custom_field');

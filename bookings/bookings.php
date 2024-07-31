@@ -37,7 +37,7 @@ function enqueue_custom_scripts_styles_bookings($hook_suffix) {
         // Enqueue your CSS file
         wp_enqueue_style('custom-style', get_stylesheet_directory_uri() . '/bookings/index-D7Hq4R-6.css');
         // Enqueue your JavaScript file
-        wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/bookings/index-C8DQaAUL.js', array(), null, true);
+        wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/bookings/index-BzGERzSA.js', array(), null, true);
     }
 }
 add_action('admin_enqueue_scripts', 'enqueue_custom_scripts_styles_bookings');

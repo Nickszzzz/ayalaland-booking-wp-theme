@@ -127,6 +127,109 @@ function get_locations_by_user_role($request) {
     }
 }
 
+add_action('rest_api_init', 'register_admin_rooms_endpoint');
+function register_admin_rooms_endpoint() {
+    register_rest_route('v2', '/admin-rooms/(?P<user_id>\d+)', array(
+        'methods' => 'GET',
+        'callback' => 'get_rooms_by_user_role',
+        'permission_callback' => '__return_true', // Allow all requests for now, handle permissions in callback
+    ));
+}
+
+function get_rooms_by_user_role($request) {
+    $user_id = $request->get_param('user_id');
+
+    // Check if user exists
+    $user = get_user_by('id', $user_id);
+    if (!$user) {
+        return new WP_Error('invalid_user', 'Invalid user ID', array('status' => 404));
+    }
+
+    // Check user role
+    if (in_array('administrator', $user->roles)) {
+        // If user is admin, return all rooms
+        $args = array(
+            'post_type'      => 'product',
+            'post_status'    => 'publish',
+            'posts_per_page' => -1,
+        );
+        $rooms_query = new WP_Query($args);
+        $rooms = array();
+
+        if ($rooms_query->have_posts()) {
+            while ($rooms_query->have_posts()) {
+                $rooms_query->the_post();
+
+                $room_id = get_the_ID();
+                $hourly_rate = get_field('rates_hourly_rate', $room_id);
+                $daily_rate = get_field('rates_daily_rate', $room_id);
+
+                $rooms[] = array(
+                    'ID'             => $room_id,
+                    'title'          => html_entity_decode(get_the_title(), ENT_QUOTES, 'UTF-8'),
+                    'description'    => get_the_excerpt(),
+                    'hourly_rate'    => $hourly_rate,
+                    'daily_rate'     => $daily_rate,
+                    'featured_image' => get_the_post_thumbnail_url($room_id, 'full'),
+                    'permalink'      => get_the_permalink(),
+                );
+            }
+            wp_reset_postdata(); // Reset post data after query
+        }
+
+        return rest_ensure_response($rooms);
+
+    } elseif (in_array('shop_manager', $user->roles)) {
+        // If user is shop manager, get rooms ID from ACF field
+        $location_id = get_field('location', 'user_' . $user_id);
+        if ($location_id) {
+            $args = array(
+                'post_type'      => 'product',
+                'posts_per_page' => -1,
+                'meta_query'     => array(
+                    array(
+                        'key'     => 'room_description_location',
+                        'value'   => $location_id,
+                        'compare' => '=',
+                    ),
+                ),
+            );
+
+            $rooms_query = new WP_Query($args);
+            $rooms = array();
+
+            if ($rooms_query->have_posts()) {
+                while ($rooms_query->have_posts()) {
+                    $rooms_query->the_post();
+
+                    $room_id = get_the_ID();
+                    $hourly_rate = get_field('rates_hourly_rate', $room_id);
+                    $daily_rate = get_field('rates_daily_rate', $room_id);
+
+                    $rooms[] = array(
+                        'ID'             => $room_id,
+                        'title'          => html_entity_decode(get_the_title(), ENT_QUOTES, 'UTF-8'),
+                        'description'    => get_the_excerpt(),
+                        'hourly_rate'    => $hourly_rate,
+                        'daily_rate'     => $daily_rate,
+                        'featured_image' => get_the_post_thumbnail_url($room_id, 'full'),
+                        'permalink'      => get_the_permalink(),
+                    );
+                }
+                wp_reset_postdata(); // Reset post data after query
+            }
+
+            return rest_ensure_response($rooms);
+
+        } else {
+            return new WP_Error('no_rooms_assigned', 'No rooms assigned to this shop manager', array('status' => 404));
+        }
+    } else {
+        return new WP_Error('forbidden', 'You do not have permission to view rooms', array('status' => 403));
+    }
+}
+
+
 
 
 // Register a custom REST API endpoint for single location
@@ -888,6 +991,8 @@ function custom_booking_details_callback(WP_REST_Request $request) {
     $operating_hours_end = get_field('operating_hours_end', $room_id);
     $operating_days_starts = get_field('operating_days_starts', $room_id);
     $operating_days_ends = get_field('operating_days_ends', $room_id);
+    $room_location = get_field('room_description_location', $room_id);
+
 
     // Construct the response data
     $data = array(
@@ -901,6 +1006,7 @@ function custom_booking_details_callback(WP_REST_Request $request) {
         'operating_hours_end' => $operating_hours_end,
         'operating_days_starts' => $operating_days_starts,
         'operating_days_ends' => $operating_days_ends,
+        'room_location_id' => $room_location->ID,
     );
 
     return new WP_REST_Response($data, 200);
@@ -946,7 +1052,7 @@ function sso_login_or_create_user($request) {
         // Create a new user if they don't exist
         $user_id = wp_insert_user([
             'user_email' => $email,
-            'user_login' => $name,
+            'user_login' => $email,
             'first_name' => $firstName,
             'last_name' => $lastName,
             'role' => 'customer', // Set the default role to 'customer'
@@ -1360,6 +1466,19 @@ function get_payments_by_author( $data ) {
         $transaction_id = $order->get_transaction_id();
         $order_status = $order_data['status']; // Get the order status
         $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
+        $booking_type = get_field( 'booking_type', $order->get_id() );
+        $total_hours = get_field( 'number_of_hours', $order->get_id() );
+
+
+        // Extract amount from booking type using regex
+        preg_match('/₱ ([\d,]+\.\d{2})/', $booking_type, $matches);
+
+        $amount = floatval(str_replace(',', '', $matches[1]));
+        $totalAmount = $amount * $total_hours;
+        $taxAmountAdd = ($totalAmount * 12) / 100;
+        $total = $totalAmount + $taxAmountAdd;
+
+
         // Check if the order status is in the custom statuses array
         if ( $order->get_status() !== 'trash' && in_array( $order_status, $custom_statuses ) ) {
             $order_items = $order->get_items();
@@ -1373,11 +1492,11 @@ function get_payments_by_author( $data ) {
 
                 if ( $product_location_id->ID == $location_id ) {
                     $response[] = array(
-                        'transaction_id'       => $order_data['id'],
-                        'room_id'     => $product_id,
-                        'payment_amount' => $overall_total,
+                        'transaction_id'       => 'ALO'.padNumber($order_data['id'], 9),
+                        'room_id'     => 'ALO'.padNumber($order_data['id'], 9),
+                        'payment_amount' => $total,
                         'order_status'   => $order_status,
-                        'initial' => $author_initial
+                        'initial' => $author_initial,
                     );
                     break; // Exit the loop after the first match to avoid duplicating payments for the same order
                 }
@@ -1448,8 +1567,20 @@ function get_admin_payments_by_author( $data ) {
             $customer_id = $order->get_customer_id(); // Get customer ID
             $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
 
+            $booking_type = get_field( 'booking_type', $order->get_id() );
+            $total_hours = get_field( 'number_of_hours', $order->get_id() );
+
+
+            // Extract amount from booking type using regex
+            preg_match('/₱ ([\d,]+\.\d{2})/', $booking_type, $matches);
+
+            $amount = floatval(str_replace(',', '', $matches[1]));
+            $totalAmount = $amount * $total_hours;
+            $taxAmountAdd = ($totalAmount * 12) / 100;
+            $total = $totalAmount + $taxAmountAdd;
+
             // Format the date if necessary, for example, to 'Y-m-d H:i:s'
-            $formatted_order_date = $order_date ? $order_date->date('m-d-Y H:i A') : '';
+            $formatted_order_date = $order_date ? $order_date->date('m-d-Y h:i a') : '';
             // Check if the order status is in the custom statuses array
             if ( $order->get_status() !== 'trash' && in_array( $order_status, $custom_statuses ) ) {
                 $order_items = $order->get_items();
@@ -1459,13 +1590,13 @@ function get_admin_payments_by_author( $data ) {
                     $product_author_id = get_post_field( 'post_author', $product_id );
                     $author_initial = get_field('initial', 'user_' . $product_author_id);
                     $product_location_id = get_field('room_description_location', $product_id);
-
+                    
                     if ( $product_location_id->ID == $location_id ) {
                         $response[] = array(
-                            'transaction_id'       => 'ALO'.padNumber($order_data['id'], 6),
+                            'transaction_id'       => 'ALO'.padNumber($order_data['id'], 9),
                             'payment_date'       => $formatted_order_date,
-                            'room_id'     =>  $author_initial.''.padNumber($product_id, 6),
-                            'payment_amount' => $overall_total,
+                            'room_id'     =>  'ALO'.padNumber($order_data['id'], 9),
+                            'payment_amount' => $total,
                             'order_status'   => $order_status,
                             "location_name" => $product_location_id->post_title,
                             "customer_name" => $customer,
@@ -1499,9 +1630,7 @@ function get_admin_payments_by_author( $data ) {
     foreach ( $orders as $order ) {
         $order_data = $order->get_data();
         // Get the order date (created date)
-        $order_date = $order->get_date_created();
-        // Format the date if necessary, for example, to 'Y-m-d H:i:s'
-        $formatted_order_date = $order_date ? $order_date->date('m-d-Y H:i A') : '';
+       
         $total_payment_amount = $order->get_total();
         $payment_method = $order->get_payment_method();
         $transaction_id = $order->get_transaction_id();
@@ -1509,7 +1638,23 @@ function get_admin_payments_by_author( $data ) {
         $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
         $customer_id = $order->get_customer_id(); // Get customer ID
         $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+        
+        $booking_type = get_field( 'booking_type', $order->get_id() );
+        $total_hours = get_field( 'number_of_hours', $order->get_id() );
 
+
+        // Extract amount from booking type using regex
+        preg_match('/₱ ([\d,]+\.\d{2})/', $booking_type, $matches);
+
+        $amount = floatval(str_replace(',', '', $matches[1]));
+        $totalAmount = $amount * $total_hours;
+        $taxAmountAdd = ($totalAmount * 12) / 100;
+        $total = $totalAmount + $taxAmountAdd;
+
+        $order_date = $order->get_date_created();
+        // Format the date if necessary, for example, to 'Y-m-d H:i:s'
+        $formatted_order_date = $order_date ? $order_date->date('m-d-Y h:i a') : '';
+        
         // Check if the order status is in the custom statuses array
         if ( $order->get_status() !== 'trash' && in_array( $order_status, $custom_statuses ) ) {
             $order_items = $order->get_items();
@@ -1521,10 +1666,10 @@ function get_admin_payments_by_author( $data ) {
                 $product_location_id = get_field('room_description_location', $product_id);
 
                 $response[] = array(
-                    'transaction_id'       => 'ALO'.padNumber($order_data['id'], 6),
+                    'transaction_id'       => 'ALO'.padNumber($order_data['id'], 9),
                     'payment_date'       => $formatted_order_date,
-                    'room_id'     =>  $author_initial.''.padNumber($product_id, 6),
-                    'payment_amount' => $overall_total,
+                    'room_id'     =>  'ALO'.padNumber($order_data['id'], 9),
+                    'payment_amount' => $total,
                     'order_status'   => $order_status,
                     "location_name" => $product_location_id->post_title,
                     "customer_name" => $customer,
@@ -1650,7 +1795,7 @@ function get_admin_orders_by_author( $data ) {
                         $order_checkout_date = $order_checkout_date->format('M-d-Y h:i A');
     
                         $response[] = array(
-                            'id'            => 'ALO'.padNumber($order_data['id'], 6),
+                            'id'            => 'ALO'.padNumber($order_data['id'], 9),
                             'post_id'            => $order_data['id'],
                             'booking_date'    => $booking_date,
                             'room_name'  => $product_name,
@@ -1770,7 +1915,7 @@ function get_admin_orders_by_author( $data ) {
                     $order_checkout_date = $order_checkout_date->format('M-d-Y h:i A');
 
                     $response[] = array(
-                        'id'            => 'ALO'.padNumber($order_data['id'], 6),
+                        'id'            => 'ALO'.padNumber($order_data['id'], 9),
                         'post_id'            => $order_data['id'],
                         'booking_date'    => $booking_date,
                         'room_name'  => $product_name,
@@ -1904,7 +2049,7 @@ function get_custom_woocommerce_orders( $data ) {
 
                     
                     $response[] = array(
-                        'id'            => 'ALO'.padNumber($order_data['id'], 6),
+                        'id'            => 'ALO'.padNumber($order_data['id'], 9),
                         'booking_date'    => $booking_date,
                         'room_name'  => $product_name,
                         'price'         => $product_price,
@@ -2034,7 +2179,7 @@ function get_center_admin_woocommerce_orders( $data ) {
                     $order_checkout_date = $order_checkout_date->format('M-d-Y h:i A');
 
                     $response[] = array(
-                        'id'            => 'ALO'.padNumber($order_data['id'], 6),
+                        'id'            => 'ALO'.padNumber($order_data['id'], 9),
                         'booking_date'    => $booking_date,
                         'room_name'  => $product_name,
                         'price'         => $product_price,
@@ -2189,7 +2334,7 @@ function cancel_order(WP_REST_Request $request) {
     $checkoutFormatted = $checkoutDateTime->format('g:i A');
 
     create_notification_post_with_acf(
-        "Booking Cancelled", 
+        "Cancelled Room Booking", 
         "A meeting room booking request for [$checkinFormatted - $checkoutFormatted] has been cancelled by Center Admin due to [$reason].", 
         $user_id, 
         false
@@ -2212,20 +2357,33 @@ function cancel_order(WP_REST_Request $request) {
  
     }
 
-    $author_id = get_post_field('post_author', $product_id);
-    $product = wc_get_product( $product_id );
-    $product_name = $product->get_name();
+    $room_location = get_field('room_description_location', $product_id);
 
-    create_notification_post_with_acf(
-        "Cancelled Room Booking", 
-        "A meeting room cancellation for a booking on [$checkinFormatted - $checkoutFormatted] has been requested by a customer. Requesting for your decision on the cancellation request.", 
-        $author_id, 
-        false
+    // Define the query arguments
+    $args = array(
+        'meta_key' => 'location', // The meta key for the ACF field
+        'meta_value' => $room_location->ID, // The value you want to match
+        'meta_compare' => '=', // Comparison operator
     );
 
-   
+    // Perform the user query
+    $user_query = new WP_User_Query($args);
 
+    // Get the results
+    $users = $user_query->get_results();
 
+    // Check for results
+    if (!empty($users)) {
+        // Loop through each user
+        foreach ($users as $user) {
+            create_notification_post_with_acf(
+                "Cancelled Room Booking", 
+                "A meeting room cancellation for a booking on [$checkinFormatted - $checkoutFormatted] has been requested by a customer. Requesting for your decision on the cancellation request.", 
+                $user->ID, 
+                false
+            );
+        }
+    }
 
     return array('success' => true, 'message' => 'Order cancelled successfully');
 }
@@ -2356,18 +2514,33 @@ function decline_cancel_request(WP_REST_Request $request) {
  
     }
 
-    $author_id = get_post_field('post_author', $product_id);
-    $product = wc_get_product( $product_id );
-    $product_name = $product->get_name();
+    $room_location = get_field('room_description_location', $product_id);
 
-    create_notification_post_with_acf(
-        "Declined Booking Cancellation Request", 
-        "A cancellation request for the meeting room booking on [$checkinFormatted - $checkoutFormatted] has been declined by the center admin.", 
-        $author_id, 
-        false
+    // Define the query arguments
+    $args = array(
+        'meta_key' => 'location', // The meta key for the ACF field
+        'meta_value' => $room_location->ID, // The value you want to match
+        'meta_compare' => '=', // Comparison operator
     );
 
+    // Perform the user query
+    $user_query = new WP_User_Query($args);
 
+    // Get the results
+    $users = $user_query->get_results();
+
+    // Check for results
+    if (!empty($users)) {
+        // Loop through each user
+        foreach ($users as $user) {
+            create_notification_post_with_acf(
+                "Declined Booking Cancellation Request", 
+                "A cancellation request for the meeting room booking on [$checkinFormatted - $checkoutFormatted] has been declined by the center admin.", 
+                $user->ID, 
+                false
+            );
+        }
+    }
 
     return array('success' => true, 'message' => 'Order cancelled successfully');
 }
@@ -2477,18 +2650,33 @@ function approved_cancel_request(WP_REST_Request $request) {
  
     }
 
-    $author_id = get_post_field('post_author', $product_id);
-    $product = wc_get_product( $product_id );
-    $product_name = $product->get_name();
+    $room_location = get_field('room_description_location', $product_id);
 
-    create_notification_post_with_acf(
-        "Approved Booking Cancellation Request ", 
-        "A cancellation request for the meeting room booking on [$checkinFormatted - $checkoutFormatted] has been approved by the center admin.", 
-        $author_id, 
-        false
+    // Define the query arguments
+    $args = array(
+        'meta_key' => 'location', // The meta key for the ACF field
+        'meta_value' => $room_location->ID, // The value you want to match
+        'meta_compare' => '=', // Comparison operator
     );
 
+    // Perform the user query
+    $user_query = new WP_User_Query($args);
 
+    // Get the results
+    $users = $user_query->get_results();
+
+    // Check for results
+    if (!empty($users)) {
+        // Loop through each user
+        foreach ($users as $user) {
+            create_notification_post_with_acf(
+                "Approved Booking Cancellation Request ", 
+                "A cancellation request for the meeting room booking on [$checkinFormatted - $checkoutFormatted] has been approved by the center admin.", 
+                $user->ID, 
+                false
+            );
+        }
+    }
 
     return array('success' => true, 'message' => 'Order cancelled successfully');
 }
@@ -2571,16 +2759,33 @@ function cancellation_request_order(WP_REST_Request $request) {
  
     }
 
-    $author_id = get_post_field('post_author', $product_id);
-    $product = wc_get_product( $product_id );
-    $product_name = $product->get_name();
+    $room_location = get_field('room_description_location', $product_id);
 
-    create_notification_post_with_acf(
-        "Booking Cancellation Request", 
-        "A meeting room cancellation for a booking on [$checkinFormatted - $checkoutFormatted] has been requested by a customer. Requesting for your decision on the cancellation request.", 
-        $author_id, 
-        false
+    // Define the query arguments
+    $args = array(
+        'meta_key' => 'location', // The meta key for the ACF field
+        'meta_value' => $room_location->ID, // The value you want to match
+        'meta_compare' => '=', // Comparison operator
     );
+
+    // Perform the user query
+    $user_query = new WP_User_Query($args);
+
+    // Get the results
+    $users = $user_query->get_results();
+
+    // Check for results
+    if (!empty($users)) {
+        // Loop through each user
+        foreach ($users as $user) {
+            create_notification_post_with_acf(
+                "Booking Cancellation Request", 
+                "A meeting room cancellation for a booking on [$checkinFormatted - $checkoutFormatted] has been requested by a customer. Requesting for your decision on the cancellation request.", 
+                $user->ID, 
+                false
+            );
+        }
+    }
 
     return rest_ensure_response(array(
         'success' => true,
@@ -2741,6 +2946,8 @@ function get_customer_orders( $data ) {
         'ayala_cancelled',
         'ayala_approved',
         'cancel_request',
+        'denied_request',
+        'approved_request',
     );
 
     foreach ($orders as $order) {
@@ -2797,7 +3004,7 @@ function get_customer_orders( $data ) {
                 $order_checkout_date = $order_checkout_date->format('M-d-Y h:i A');
 
                 $response[] = array(
-                    'id'            => 'ALO'.padNumber($order_data['id'], 6),
+                    'id'            => 'ALO'.padNumber($order_data['id'], 9),
                     'booking_date'   => $booking_date,
                     'room_name'      => $product_name,
                     'price'          => $product_price,
@@ -2984,16 +3191,36 @@ function handle_custom_order_creation(WP_REST_Request $request) {
     );
 
     $product_id = get_field('product_id', $new_post_id);
-    $author_id = get_post_field('post_author', $product_id);
     $product = wc_get_product( $product_id );
     $product_name = $product->get_name();
 
-    create_notification_post_with_acf(
-        "New Confirmed Room Booking", 
-        "A new meeting room booking request for [$checkinFormatted - $checkoutFormatted] on [$product_name] has been booked.", 
-        $author_id, 
-        false
+    $room_location = get_field('room_description_location', $product_id);
+
+    // Define the query arguments
+    $args = array(
+        'meta_key' => 'location', // The meta key for the ACF field
+        'meta_value' => $room_location->ID, // The value you want to match
+        'meta_compare' => '=', // Comparison operator
     );
+
+    // Perform the user query
+    $user_query = new WP_User_Query($args);
+
+    // Get the results
+    $users = $user_query->get_results();
+
+    // Check for results
+    if (!empty($users)) {
+        // Loop through each user
+        foreach ($users as $user) {
+            create_notification_post_with_acf(
+                "New Confirmed Room Booking", 
+                "A new meeting room booking request for [$checkinFormatted - $checkoutFormatted] on [$product_name] has been booked.", 
+                $user->ID, 
+                false
+            );
+        }
+    }
 
      // Set the order status to "completed" to indicate it's paid
      $order->update_status('ayala_approved', 'Order paid via API', TRUE);
@@ -3198,16 +3425,38 @@ function handle_custom_orders_creation(WP_REST_Request $request) {
         );
     
         $product_id = get_field('product_id', $new_post_id);
-        $author_id = get_post_field('post_author', $product_id);
         $product = wc_get_product( $product_id );
         $product_name = $product->get_name();
     
-        create_notification_post_with_acf(
-            "New Confirmed Room Booking", 
-            "A new meeting room booking request for [$checkinFormatted - $checkoutFormatted] on [$product_name] has been booked.", 
-            $author_id, 
-            false
+        $room_location = get_field('room_description_location', $product_id);
+
+        // Define the query arguments
+        $args = array(
+            'meta_key' => 'location', // The meta key for the ACF field
+            'meta_value' => $room_location->ID, // The value you want to match
+            'meta_compare' => '=', // Comparison operator
         );
+
+        // Perform the user query
+        $user_query = new WP_User_Query($args);
+
+        // Get the results
+        $users = $user_query->get_results();
+
+        // Check for results
+        if (!empty($users)) {
+            // Loop through each user
+            foreach ($users as $user) {
+                create_notification_post_with_acf(
+                    "New Confirmed Room Booking", 
+                    "A new meeting room booking request for [$checkinFormatted - $checkoutFormatted] on [$product_name] has been booked.", 
+                    $user->ID, 
+                    false
+                );
+            }
+        }
+
+        
         $order->update_status('ayala_approved', 'Order paid via API', TRUE);
         $results[] = array(
             'success' => true,
@@ -3889,6 +4138,27 @@ function create_notification_post_with_acf($title, $content, $user_id, $status) 
     $post_id = wp_insert_post( $post_data );
     update_field('user_id', $user_id, $post_id); // Set the user ID
     update_field('status', $status, $post_id); // Set the status
+
+    $api_url = get_option('frontend_address_url');
+
+    $data = array(
+        'id'       => $post_id,
+        'title'    => $title,
+        'content'  => $content,
+        'user_id'  => $user_id,
+        'status'   =>  $status,
+    );
+    // Define the POST request arguments
+    $args = array(
+        'method'    => 'POST',
+        'body'      => json_encode($data), // If you need to send data, add it here
+        'headers'   => array(
+            'Content-Type' => 'application/json',
+        ),
+    );
+
+    wp_remote_post("$api_url/api/notification", $args);
+
 }
 
 function register_notifications_route() {
@@ -3904,57 +4174,7 @@ function get_notifications_by_user_id(WP_REST_Request $request) {
     $user_id = $request->get_param('id');
     $user_info = get_userdata($user_id);
 
-    if ($user_info) {
-        $user_roles = $user_info->roles;
-        if (in_array('shop_manager', $user_roles)) {
-            $location_id = get_field('location', 'user_' . $user_id);
-
-            // Query users with the specified location_id
-            $user_ids = get_users(array(
-                'meta_key'   => 'location',
-                'meta_value' => $location_id,
-                'fields'     => 'ID', // Retrieve only the user IDs
-            ));
-
-            $query_args = array(
-                'post_type'  => 'notifications',
-                'meta_query' => array(
-                    array(
-                        'key'     => 'user_id',
-                        'value'   => $user_ids,
-                        'compare' => 'IN',
-                    ),
-                ),
-                'posts_per_page' => -1,
-                'post_status' => 'publish',
-                'orderby'           => 'date',
-                'order'             => 'DESC', // Use 'ASC' for ascending order
-            );
-        
-            $query = new WP_Query($query_args);
-            
-            if (!$query->have_posts()) {
-                return new WP_Error('no_notifications', 'No notifications found for this user', array('status' => 404));
-            }
-
-            $notifications = array();
-
-            while ($query->have_posts()) {
-                $query->the_post();
-                $notifications[] = array(
-                    'id' => get_the_id(),
-                    'title' => get_the_title(),
-                    'description' => get_the_content(),
-                    'date' => get_the_date('Y-m-d H:i:s'),
-                    'status' => get_field('status') ? 'read' : 'unread', // Convert boolean to 'read'/'unread'
-                );
-            }
-
-            wp_reset_postdata();
-
-            return new WP_REST_Response($notifications, 200);
-
-        } else {
+   
            // Query for notifications
             $args = array(
                 'post_type'         => 'notifications',
@@ -3988,8 +4208,6 @@ function get_notifications_by_user_id(WP_REST_Request $request) {
             wp_reset_postdata();
 
             return new WP_REST_Response($notifications, 200);
-        }
-    }
     
 }
 

@@ -50,4 +50,23 @@ jQuery(document).ready(function ($) {
 
     $('#acf-group_667d112924318 input').prop('disabled', true);
 
+
+    $(document).ready(function () {
+        // Function to hide the author field
+        const hideAuthorField = () => {
+            const authorControl = $('.editor-post-author__panel-toggle');
+            if (authorControl.length) {
+                authorControl.closest('.editor-post-panel__row').hide();
+            }
+        };
+
+        // Run the function to hide the author field initially
+        hideAuthorField();
+
+        // Optional: Re-run the function if the panel is dynamically updated
+        wp.data.subscribe(() => {
+            hideAuthorField();
+        });
+    });
+
 });
