@@ -1569,7 +1569,7 @@ function get_admin_payments_by_author( $data ) {
             $customer_id = $order->get_customer_id(); // Get customer ID
             $customer_information = get_userdata($customer_id);
             if($customer_information) {
-                $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+                $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->last_name); // Get customer name
             }else {
                 $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
             }
@@ -1650,7 +1650,7 @@ function get_admin_payments_by_author( $data ) {
         $customer_id = $order->get_customer_id(); // Get customer ID
         $customer_information = get_userdata($customer_id);
         if($customer_information) {
-            $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+            $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->last_name); // Get customer name
         }else {
             $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
         }
@@ -1761,7 +1761,7 @@ function get_admin_orders_by_author( $data ) {
             $customer_id = $order->get_customer_id(); // Get customer ID
             $customer_information = get_userdata($customer_id);
             if($customer_information) {
-                $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+                $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->last_name); // Get customer name
             }else {
                 $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
             }
@@ -1892,7 +1892,7 @@ function get_admin_orders_by_author( $data ) {
         $customer_id = $order->get_customer_id(); // Get customer ID
         $customer_information = get_userdata($customer_id);
         if($customer_information) {
-            $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+            $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->last_name); // Get customer name
         }else {
             $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
         }
