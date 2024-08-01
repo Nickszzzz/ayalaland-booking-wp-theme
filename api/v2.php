@@ -4158,6 +4158,7 @@ function create_notification_post_with_acf($title, $content, $user_id, $status) 
     );
 
     wp_remote_post("$api_url/api/notification", $args);
+    wp_remote_post("$api_url/api/load", $args);
 
 }
 
