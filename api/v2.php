@@ -1564,8 +1564,17 @@ function get_admin_payments_by_author( $data ) {
             $order_status = $order_data['status']; // Get the order status
             $order_date = $order->get_date_created();
             $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
+            
+            
             $customer_id = $order->get_customer_id(); // Get customer ID
-            $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+            $customer_information = get_userdata($customer_id);
+            if($customer_information) {
+                $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+            }else {
+                $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
+            }
+
+            
 
             $booking_type = get_field( 'booking_type', $order->get_id() );
             $total_hours = get_field( 'number_of_hours', $order->get_id() );
@@ -1636,8 +1645,17 @@ function get_admin_payments_by_author( $data ) {
         $transaction_id = $order->get_transaction_id();
         $order_status = $order_data['status']; // Get the order status
         $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
+        
+        
         $customer_id = $order->get_customer_id(); // Get customer ID
-        $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+        $customer_information = get_userdata($customer_id);
+        if($customer_information) {
+            $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+        }else {
+            $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
+        }
+
+        
         
         $booking_type = get_field( 'booking_type', $order->get_id() );
         $total_hours = get_field( 'number_of_hours', $order->get_id() );
@@ -1739,8 +1757,14 @@ function get_admin_orders_by_author( $data ) {
             $order_status = $order_data['status']; // Get the order status
             $order_date = $order->get_date_created();
             $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
+
             $customer_id = $order->get_customer_id(); // Get customer ID
-            $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+            $customer_information = get_userdata($customer_id);
+            if($customer_information) {
+                $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+            }else {
+                $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
+            }
 
             // Format the date if necessary, for example, to 'Y-m-d H:i:s'
             $formatted_order_date = $order_date ? $order_date->date('m-d-Y H:i A') : '';
@@ -1863,8 +1887,18 @@ function get_admin_orders_by_author( $data ) {
         $transaction_id = $order->get_transaction_id();
         $order_status = $order_data['status']; // Get the order status
         $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
+        
+        
         $customer_id = $order->get_customer_id(); // Get customer ID
-        $customer = $order->get_billing_first_name() . ' ' . $order->get_billing_last_name(); // Get customer name
+        $customer_information = get_userdata($customer_id);
+        if($customer_information) {
+            $customer = esc_html($customer_information->first_name) . ' ' . esc_html($customer_information->first_name); // Get customer name
+        }else {
+            $customer = $order->get_meta('_billing_first_name') . ' ' . $order->get_meta('_billing_last_name'); // Get customer name
+        }
+
+        
+
 
         if ($order->get_status() !== 'trash' &&  in_array( $order_status, $custom_statuses ) ) {
             $order_data = $order->get_data();
