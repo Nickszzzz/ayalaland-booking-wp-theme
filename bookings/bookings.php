@@ -35,9 +35,9 @@ function bookings_options_page() {
 function enqueue_custom_scripts_styles_bookings($hook_suffix) {
     if ($hook_suffix === 'toplevel_page_bookings_options') {
         // Enqueue your CSS file
-        wp_enqueue_style('custom-style', get_stylesheet_directory_uri() . '/bookings/index-D7Hq4R-6.css');
+        wp_enqueue_style('custom-style', get_stylesheet_directory_uri() . '/bookings/index-DfQKTD4F.css');
         // Enqueue your JavaScript file
-        wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/bookings/index-BzGERzSA.js', array(), null, true);
+        wp_enqueue_script('custom-script', get_stylesheet_directory_uri() . '/bookings/index-Cw3vrtP4.js', array(), null, true);
     }
 }
 add_action('admin_enqueue_scripts', 'enqueue_custom_scripts_styles_bookings');

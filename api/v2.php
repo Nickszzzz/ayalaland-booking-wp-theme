@@ -428,7 +428,8 @@ function get_rooms_data(WP_REST_Request $request) {
                 'hourly_rate' => get_field('rates_hourly_rate', $id),
                 'daily_rate' => get_field('rates_daily_rate', $id),
                 'permalink' => get_permalink($id),
-                'featured_image' => get_the_post_thumbnail_url($id), // Get the featured image URL
+                'featured_image' => get_the_post_thumbnail_url($id), // Get the featured image URL,
+                'number_of_seats' => get_field('room_description_maximum_number_of_seats', $id)
             );
             $room['booked_slots'] =  $booked_dates;
             $rooms[] = $room;
@@ -672,6 +673,7 @@ function get_suggested_rooms(WP_REST_Request $request) {
                 'daily_rate' => get_field('rates_daily_rate', $id),
                 'permalink' => get_permalink($id),
                 'featured_image' => get_the_post_thumbnail_url($id), // Get the featured image URL
+                'number_of_seats' => get_field('room_description_maximum_number_of_seats', $id)
             );
             $room['booked_slots'] =  $booked_dates;
             $rooms[] = $room;
@@ -734,7 +736,8 @@ function get_meeting_rooms_by_location($request) {
                 'daily_rate' => $daily_rate,
                 'featured_image' => get_the_post_thumbnail_url($product_id, 'full'),
                 'permalink' => get_the_permalink(),
-                'booked_slots' => format_booked_slots(get_field('operating_hours_start', $product_id), get_field('operating_hours_end', $product_id), $product_id)
+                'booked_slots' => format_booked_slots(get_field('operating_hours_start', $product_id), get_field('operating_hours_end', $product_id), $product_id),
+                'number_of_seats' => get_field('room_description_maximum_number_of_seats', $product_id)
             );
 
         }
