@@ -1466,7 +1466,7 @@ function get_payments_by_author( $data ) {
         $order_data = $order->get_data();
         $total_payment_amount = $order->get_total();
         $payment_method = $order->get_payment_method();
-        $transaction_id = $order->get_transaction_id();
+        $transaction_id = get_field( 'transaction_id', $order->get_id() ); // Get the checkout custom field
         $order_status = $order_data['status']; // Get the order status
         $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
         $booking_type = get_field( 'booking_type', $order->get_id() );
@@ -1495,7 +1495,7 @@ function get_payments_by_author( $data ) {
 
                 if ( $product_location_id->ID == $location_id ) {
                     $response[] = array(
-                        'transaction_id'       => 'ALO'.padNumber($order_data['id'], 9),
+                        'transaction_id'       => $transaction_id,
                         'room_id'     => 'ALO'.padNumber($order_data['id'], 9),
                         'payment_amount' => $total,
                         'order_status'   => $order_status,
@@ -1563,7 +1563,7 @@ function get_admin_payments_by_author( $data ) {
             $order_data = $order->get_data();
             $total_payment_amount = $order->get_total();
             $payment_method = $order->get_payment_method();
-            $transaction_id = $order->get_transaction_id();
+            $transaction_id = get_field( 'transaction_id', $order->get_id() );
             $order_status = $order_data['status']; // Get the order status
             $order_date = $order->get_date_created();
             $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
@@ -1605,7 +1605,7 @@ function get_admin_payments_by_author( $data ) {
                     
                     if ( $product_location_id->ID == $location_id ) {
                         $response[] = array(
-                            'transaction_id'       => 'ALO'.padNumber($order_data['id'], 9),
+                            'transaction_id'       => $transaction_id,
                             'payment_date'       => $formatted_order_date,
                             'room_id'     =>  'ALO'.padNumber($order_data['id'], 9),
                             'payment_amount' => $total,
@@ -1645,7 +1645,7 @@ function get_admin_payments_by_author( $data ) {
        
         $total_payment_amount = $order->get_total();
         $payment_method = $order->get_payment_method();
-        $transaction_id = $order->get_transaction_id();
+        $transaction_id = get_field( 'transaction_id', $order->get_id() );
         $order_status = $order_data['status']; // Get the order status
         $overall_total = get_field( 'overall_total', $order->get_id() ); // Get the checkout custom field
         
@@ -1687,7 +1687,7 @@ function get_admin_payments_by_author( $data ) {
                 $product_location_id = get_field('room_description_location', $product_id);
 
                 $response[] = array(
-                    'transaction_id'       => 'ALO'.padNumber($order_data['id'], 9),
+                    'transaction_id'       => $transaction_id,
                     'payment_date'       => $formatted_order_date,
                     'room_id'     =>  'ALO'.padNumber($order_data['id'], 9),
                     'payment_amount' => $total,
@@ -3273,6 +3273,8 @@ function handle_custom_order_creation(WP_REST_Request $request) {
 function handle_custom_orders_creation(WP_REST_Request $request) {
     global $woocommerce;
 
+
+    $transaction_id = sanitize_text_field($request->get_param('transaction_id'));
     // Get and validate common parameters
     $user_id = intval($request->get_param('user_id'));
     // Initialize first_name and last_name variables
@@ -3409,7 +3411,7 @@ function handle_custom_orders_creation(WP_REST_Request $request) {
         update_post_meta($order_id, 'vat', $vat);
         update_post_meta($order_id, 'overall_total', $overall_total);
         update_post_meta($order_id, 'user_id', $user_id);
-
+        update_field('transaction_id', $transaction_id, $order_id);
         // Create booking post
         $author_id = get_post_field('post_author', $product_id);
         $new_post = array(
@@ -3434,6 +3436,7 @@ function handle_custom_orders_creation(WP_REST_Request $request) {
         update_post_meta($order_id, 'ad_ons', $ad_ons);
         // Update custom fields for the booking post
         update_field('order_id', $order_id, $new_post_id);
+        update_field('transaction_id', $transaction_id, $new_post_id);
         update_field('product_id', $product_id, $new_post_id);
         update_field('checkin', $checkin->getTimestamp(), $new_post_id);
         update_field('checkout', $checkout->getTimestamp(), $new_post_id);
