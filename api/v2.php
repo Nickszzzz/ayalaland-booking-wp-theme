@@ -995,6 +995,7 @@ function custom_booking_details_callback(WP_REST_Request $request) {
     $operating_days_starts = get_field('operating_days_starts', $room_id);
     $operating_days_ends = get_field('operating_days_ends', $room_id);
     $room_location = get_field('room_description_location', $room_id);
+    $xendit_secret_key = get_field('xendit_secret_key', $room_location->ID);
 
 
     // Construct the response data
@@ -1010,6 +1011,7 @@ function custom_booking_details_callback(WP_REST_Request $request) {
         'operating_days_starts' => $operating_days_starts,
         'operating_days_ends' => $operating_days_ends,
         'room_location_id' => $room_location->ID,
+        'code' => $xendit_secret_key,
     );
 
     return new WP_REST_Response($data, 200);
